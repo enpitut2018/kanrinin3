@@ -21,11 +21,12 @@ godaisan = Ikkokukan()
 
 isMatch = False
 inviteEnd = False
-
+day = 1
 
 kyokosan.isogashi_list = [1,2,4,7,8,11,12,14,16,17,19,20,22,24,27,30]
 godaisan.isogashi_list = [2,3,5,7,9,11,13,14,15,18,19,24,26,28,30,31]
 
+'''
 print("二人の日程を入力してください．終了する場合は0を入力してください．")
 
 print("響子さんの空いてる日is:")
@@ -35,6 +36,14 @@ while kyokosan.isEnd == False:
 print("五代さんの空いてる日is:")
 while godaisan.isEnd == False:
     godaisan.schedule_add(input())
+'''
+
+while day < 32:
+    if day not in kyokosan.isogashi_list:
+        kyokosan.free_list.append(day)
+    if day not in godaisan.isogashi_list:
+        godaisan.free_list.append(day)
+    day += 1
 
 kyokosan.free_list.sort()
 godaisan.free_list.sort()
@@ -63,7 +72,7 @@ if isMatch:
             print(inviteDay + "日に招待を送りました!!!!!!!!")
             inviteEnd = True
         else:
-            print(inviteDay + "は予定があるみたいです.")
+            print(inviteDay + "日は予定があるみたいです...")
 
 else:
     print("来月は頑張ってください...")
