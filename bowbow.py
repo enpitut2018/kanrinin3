@@ -1,6 +1,4 @@
-#icsファイルによるカレンダーのインポートあり版
-
-import re
+#icsファイルインポートなし版
 
 class Ikkokukan():
     def __init__(self):
@@ -43,34 +41,6 @@ marry = False
 #ループ変数
 day = 1
 
-#icsファイルを開く
-path_kyoko = 'Kyokosan.ics'
-path_godai = 'Godaisan.ics'
-
-with open(path_kyoko) as f:
-    lines = f.readlines()
-
-lines_strip = [line.strip() for line in lines]
-
-l_DTSTART = [line for line in lines_strip if 'DTSTART' in line]
-l_DTEND = [line for line in lines_strip if 'DTSTART' in line]
-i=0
-while i < len(l_DTSTART):
-    matchObj = re.search(r'[0-9]{8}', l_DTSTART[i])
-    print("START: " + matchObj.group())
-    matchObj = re.search(r'[0-9]{8}', l_DTEND[i])
-    print("END:   " + matchObj.group())
-    i += 1
-#print(l_DTSTART)
-
-with open(path_godai) as f:
-    lines = f.readlines()
-
-lines_strip = [line.strip() for line in lines]
-
-l_DTSTART = [line for line in lines_strip if 'DTSTART' in line]
-#print(l_DTSTART)
-
 #あらかじめスケジュールを入力しておくパターン
 kyokosan.isogashi_list = [1,2,4,7,8,11,12,14,16,17,19,20,22,24,27,30]
 godaisan.isogashi_list = [2,3,5,7,9,11,13,14,15,18,19,24,26,28,30,31]
@@ -79,15 +49,14 @@ godaisan.isogashi_list = [2,3,5,7,9,11,13,14,15,18,19,24,26,28,30,31]
 #手入力パターン
 print("二人の日程を入力してください．終了する場合は0を入力してください．")
 
-print("響子さんの空いてる日is:")
+print("響子さんの忙しい日is:")
 while kyokosan.isEnd == False:
-    kyokosan.schedule_free_add(input())
+    kyokosan.schedule_isgashi_add(input())
 
-print("五代さんの空いてる日is:")
+print("五代さんの忙しい日is:")
 while godaisan.isEnd == False:
-    godaisan.schedule_free_add(input())
+    godaisan.schedule_isogashi_add(input())
 '''
-
 
 #忙しい日リストから暇な日リストを作る
 while day < 32:
