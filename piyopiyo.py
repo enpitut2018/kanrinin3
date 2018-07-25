@@ -53,13 +53,14 @@ with open(path_kyoko) as f:
 lines_strip = [line.strip() for line in lines]
 
 l_DTSTART = [line for line in lines_strip if 'DTSTART' in line]
-l_DTEND = [line for line in lines_strip if 'DTSTART' in line]
+l_DTEND = [line for line in lines_strip if 'DTEND' in line]
 i=0
 while i < len(l_DTSTART):
-    matchObj = re.search(r'[0-9]{8}', l_DTSTART[i])
-    print("START: " + matchObj.group())
-    matchObj = re.search(r'[0-9]{8}', l_DTEND[i])
-    print("END:   " + matchObj.group())
+    matchObj_start = re.search(r'[0-9]{8}', l_DTSTART[i])
+    print("START: " + matchObj_start.group())
+    matchObj_end = re.search(r'[0-9]{8}', l_DTEND[i])
+    print("END:   " + matchObj_end.group())
+    #todo 
     i += 1
 #print(l_DTSTART)
 
@@ -83,6 +84,8 @@ while day < 32:
 kyokosan.free_list.sort()
 godaisan.free_list.sort()
 
+'''
+#暇な日print
 print("響子さんの空いてる日is:")
 kyokosan.schedule_free_show()
 print("五代さんの空いてる日is:")
@@ -115,3 +118,4 @@ if isMatch:
 else:
     print("来月は頑張ってください...")
     
+'''
