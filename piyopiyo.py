@@ -2,6 +2,14 @@
 
 import re
 import datetime
+import urllib.request
+import sys
+
+#python2.79以降必要
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
+args = sys.argv
 
 boshu_start_str = '20180701'
 boshu_end_str = '20180731'
@@ -9,26 +17,32 @@ boshu_end_str = '20180731'
 boshu_start = datetime.datetime.strptime(boshu_start_str, "%Y%m%d")
 boshu_end = datetime.datetime.strptime(boshu_end_str, "%Y%m%d")
 
-file_name1 = 'Kyokosan_copy.ics'
-file_name2 = 'Godaisan.ics'
+URL1 = args[1]
+URL2 = args[2]
+
+file_name1 = 'Kyokosan2.ics'
+file_name2 = 'Godaisan2.ics'
+
+urllib.request.urlretrieve(URL1, file_name1)
+urllib.request.urlretrieve(URL2, file_name2)
 
 class Ikkokukan():
     def __init__(self):
         self.free_set = set() #暇な日を格納するset
-        self.isogashi_set = set() #忙しい日を格納するset
+        self.busy_set = set() #忙しい日を格納するset
         self.isEnd = False
         
     def schedule_free_add(self,date):
         self.free_set.add(date)
 
-    def schedule_isogashi_add(self,date):
-        self.isogashi_set.add(date)
+    def schedule_busy_add(self,date):
+        self.busy_set.add(date)
 
     def schedule_free_show(self):
         print(self.free_set)
 
-    def schedule_isogashi_show(self):
-        print(self.isogashi_set)
+    def schedule_busy_show(self):
+        print(self.busy_set)
 
 #インスタンス作成
 kyokosan = Ikkokukan()
@@ -82,7 +96,7 @@ while i < len(l_DTSTART):
     #予定のある日を計算
     calc_date = date_formatted_start
     while calc_date < date_formatted_end:
-        kyokosan.schedule_isogashi_add(calc_date)
+        kyokosan.schedule_busy_add(calc_date)
         calc_date = calc_date + datetime.timedelta(days=1)
 
     i += 1
@@ -115,23 +129,35 @@ while i < len(l_DTSTART):
     #予定のある日を計算
     calc_date = date_formatted_start
     while calc_date < date_formatted_end:
-        godaisan.schedule_isogashi_add(calc_date)
+        godaisan.schedule_busy_add(calc_date)
         calc_date = calc_date + datetime.timedelta(days=1)
 
     i += 1
 
 #忙しい日リストから暇な日リストを作る
-everyone.isogashi_set = kyokosan.isogashi_set | godaisan.isogashi_set
-#print(everyone.isogashi_set)
-#print(len(everyone.isogashi_set))
-everyone.free_set = soichirosan.free_set - everyone.isogashi_set
-print(everyone.free_set)
+#全員の忙しい日セット == 個人の忙しい日セットの和集合
+everyone.busy_set = kyokosan.busy_set | godaisan.busy_set
+#全員の忙しい日セットの補集合 == 全員が暇な日セット
+everyone.free_set = soichirosan.free_set - everyone.busy_set
+free_list = sorted(everyone.free_set)
+#print(free_list)
+
+#候補日を表示
+print("今月のお二人の都合のいい日をお知らせします：")
+print("期間："+boshu_start_str+"-"+boshu_end_str)
+i=0
+l_print = []
+while i < len(free_list):
+    print(str(free_list[i].month) + "月", end="")
+    print(str(free_list[i].day) + "日")
+    i += 1
+print("それでは良い日を！")
 
 '''
 while boshu_start.date() < boshu_end.date():
     tmp = boshu_start
     while tmp.date() < boshu_end.date()
-        if tmp.date() not in kyokosan.isogashi_set[0].date():
+        if tmp.date() not in kyokosan.busy_set[0].date():
             kyokosan.free_set.append(boshu_start)
         #todo:五代さんの分も
         tmp = tmp + datetime.timedelta(days=1)
@@ -140,7 +166,7 @@ while boshu_start.date() < boshu_end.date():
 
 '''
 print("響子さんの忙しい日is:")
-kyokosan.schedule_isogashi_show()
+kyokosan.schedule_busy_show()
 print("惣一郎さんが暇な日日is:")
 soichirosan.schedule_free_show()
 print("響子さんの空いてる日is:")
