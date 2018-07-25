@@ -1,39 +1,40 @@
 #icsファイルによるカレンダーのインポートあり版
 
 import re
+import datetime
+
+boshu_start_str = '20180701'
+boshu_end_str = '20180731'
+
+boshu_start = datetime.datetime.strptime(boshu_start_str, "%Y%m%d")
+boshu_end = datetime.datetime.strptime(boshu_end_str, "%Y%m%d")
+
+file_name1 = 'Kyokosan_copy.ics'
+file_name2 = 'Godaisan.ics'
 
 class Ikkokukan():
     def __init__(self):
-        self.free_list = []
-        self.isogashi_list = []
+        self.free_set = set() #暇な日を格納するset
+        self.isogashi_set = set() #忙しい日を格納するset
         self.isEnd = False
         
     def schedule_free_add(self,date):
-        if(date.isdecimal()):
-            num = int(date)
-            if(num<1 or num>31):
-                self.isEnd = True
-            else:
-                self.free_list.append(num)     
+        self.free_set.add(date)
 
     def schedule_isogashi_add(self,date):
-        if(date.isdecimal()):
-            num = int(date)
-            if(num<1 or num>31):
-                self.isEnd = True
-            else:
-                self.isogashi_list.append(num)
+        self.isogashi_set.add(date)
 
     def schedule_free_show(self):
-        print(self.free_list)
+        print(self.free_set)
 
     def schedule_isogashi_show(self):
-        print(self.isogashi_list)
+        print(self.isogashi_set)
 
 #インスタンス作成
 kyokosan = Ikkokukan()
 godaisan = Ikkokukan()
-#soichirosan = Ikkokukan()
+soichirosan = Ikkokukan()
+everyone = Ikkokukan()
 
 #フラグ
 isMatch = False
@@ -44,9 +45,17 @@ marry = False
 day = 1
 
 #icsファイルを開く
-path_kyoko = 'Kyokosan.ics'
-path_godai = 'Godaisan.ics'
+path_kyoko = file_name1
+path_godai = file_name2
 
+
+calc_date = boshu_start
+while calc_date <= boshu_end:
+    soichirosan.schedule_free_add(calc_date)
+    calc_date = calc_date + datetime.timedelta(days=1)
+
+
+#響子さんのカレンダー読み込み
 with open(path_kyoko) as f:
     lines = f.readlines()
 
@@ -56,33 +65,87 @@ l_DTSTART = [line for line in lines_strip if 'DTSTART' in line]
 l_DTEND = [line for line in lines_strip if 'DTEND' in line]
 i=0
 while i < len(l_DTSTART):
+    #予定開始日
     matchObj_start = re.search(r'[0-9]{8}', l_DTSTART[i])
-    print("START: " + matchObj_start.group())
-    matchObj_end = re.search(r'[0-9]{8}', l_DTEND[i])
-    print("END:   " + matchObj_end.group())
-    #todo 
-    i += 1
-#print(l_DTSTART)
+    #日付型に変換
+    date_formatted_start = datetime.datetime.strptime(matchObj_start.group(), "%Y%m%d")
+    #print("start: ", end="")
+    #print(date_formatted_start.date())
 
+    #予定終了日
+    matchObj_end = re.search(r'[0-9]{8}', l_DTEND[i])
+    #日付型に変換
+    date_formatted_end = datetime.datetime.strptime(matchObj_end.group(), "%Y%m%d")
+    #print('end  : ', end="")
+    #print(date_formatted_end.date())
+
+    #予定のある日を計算
+    calc_date = date_formatted_start
+    while calc_date < date_formatted_end:
+        kyokosan.schedule_isogashi_add(calc_date)
+        calc_date = calc_date + datetime.timedelta(days=1)
+
+    i += 1
+
+
+#五代さんのカレンダー読み込み
 with open(path_godai) as f:
     lines = f.readlines()
 
 lines_strip = [line.strip() for line in lines]
 
 l_DTSTART = [line for line in lines_strip if 'DTSTART' in line]
-#print(l_DTSTART)
+l_DTEND = [line for line in lines_strip if 'DTEND' in line]
+i=0
+while i < len(l_DTSTART):
+    #予定開始日
+    matchObj_start = re.search(r'[0-9]{8}', l_DTSTART[i])
+    #日付型に変換
+    date_formatted_start = datetime.datetime.strptime(matchObj_start.group(), "%Y%m%d")
+    #print("start: ", end="")
+    #print(date_formatted_start.date())
+
+    #予定終了日
+    matchObj_end = re.search(r'[0-9]{8}', l_DTEND[i])
+    #日付型に変換
+    date_formatted_end = datetime.datetime.strptime(matchObj_end.group(), "%Y%m%d")
+    #print('end  : ', end="")
+    #print(date_formatted_end.date())
+
+    #予定のある日を計算
+    calc_date = date_formatted_start
+    while calc_date < date_formatted_end:
+        godaisan.schedule_isogashi_add(calc_date)
+        calc_date = calc_date + datetime.timedelta(days=1)
+
+    i += 1
 
 #忙しい日リストから暇な日リストを作る
-while day < 32:
-    if day not in kyokosan.isogashi_list:
-        kyokosan.free_list.append(day)
-    if day not in godaisan.isogashi_list:
-        godaisan.free_list.append(day)
-    day += 1
+everyone.isogashi_set = kyokosan.isogashi_set | godaisan.isogashi_set
+#print(everyone.isogashi_set)
+#print(len(everyone.isogashi_set))
+everyone.free_set = soichirosan.free_set - everyone.isogashi_set
+print(everyone.free_set)
 
-#暇な日リストをソート
-kyokosan.free_list.sort()
-godaisan.free_list.sort()
+'''
+while boshu_start.date() < boshu_end.date():
+    tmp = boshu_start
+    while tmp.date() < boshu_end.date()
+        if tmp.date() not in kyokosan.isogashi_set[0].date():
+            kyokosan.free_set.append(boshu_start)
+        #todo:五代さんの分も
+        tmp = tmp + datetime.timedelta(days=1)
+    boshu_start = boshu_start + datetime.timedelta(days=1)
+'''
+
+'''
+print("響子さんの忙しい日is:")
+kyokosan.schedule_isogashi_show()
+print("惣一郎さんが暇な日日is:")
+soichirosan.schedule_free_show()
+print("響子さんの空いてる日is:")
+kyokosan.schedule_free_show()
+'''
 
 '''
 #暇な日print
@@ -91,24 +154,25 @@ kyokosan.schedule_free_show()
 print("五代さんの空いてる日is:")
 godaisan.schedule_free_show()
 
+
 #暇な日マッチング
-matched_list = []
-for kyoko in kyokosan.free_list:
-    for godai in godaisan.free_list:
+matched_set = set()
+for kyoko in kyokosan.free_set:
+    for godai in godaisan.free_set:
         if kyoko == godai:
-            matched_list.append(kyoko)
+            matched_set.append(kyoko)
             isMatch = True
 
 #マッチする日があった場合
 if isMatch:
-    sorted_list = list(set(matched_list))
-    sorted_list.sort()
+    sorted_set = set(set(matched_set))
+    sorted_set.sort()
     print(" 二人の空いてる日is:")
-    print(sorted_list)
+    print(sorted_set)
     while inviteEnd == False:
         print("招待する日を選択してください:")
         inviteDay = input()
-        if int(inviteDay) in sorted_list:
+        if int(inviteDay) in sorted_set:
             print(inviteDay + "日に招待を送りました!!!!!!!!")
             inviteEnd = True
         else:
