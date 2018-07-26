@@ -29,13 +29,15 @@ boshu_end_str = '20180731'
 boshu_start = datetime.datetime.strptime(boshu_start_str, "%Y%m%d")
 boshu_end = datetime.datetime.strptime(boshu_end_str, "%Y%m%d")
 
-everyone_busy_set = set()
-everyone_free_set = set()
+#各set初期化
+def schedule_init():
+    everyone_busy_set = set()
+    everyone_free_set = set()
 
-calc_date = boshu_start
-while calc_date <= boshu_end:
-    everyone_free_set.add(calc_date)
-    calc_date = calc_date + datetime.timedelta(days=1)
+    calc_date = boshu_start
+    while calc_date <= boshu_end:
+        everyone_free_set.add(calc_date)
+        calc_date = calc_date + datetime.timedelta(days=1)
 
 # @respond_to('string')     bot宛のメッセージ
 #                           stringは正規表現が可能 「r'string'」
@@ -61,6 +63,7 @@ def schedulestart_func(message):
         #text = message.body['text']
         #splited = re.split('\s', text.replace('.', ''))
         #message.reply(splited[1]) # メンション
+        schedule_init()
         message.reply("Let's scheduling！Move input faze.")
         ScheFlag = 1
         
@@ -85,25 +88,23 @@ def scheduleend_func(message):
             
             if free_list.weeks == 0:
                 youbi = '(月)'
-            else free_list.weeks == 1:
+            elif free_list.weeks == 1:
                 youbi = '(火)'
-            else free_list.weeks == 2:
+            elif free_list.weeks == 2:
                 youbi = '(水)'
-            else free_list.weeks == 3:
+            elif free_list.weeks == 3:
                 youbi = '(木)'
-            else free_list.weeks == 4:
+            elif free_list.weeks == 4:
                 youbi = '(金)'
-            else free_list.weeks == 5:
+            elif free_list.weeks == 5:
                 youbi = '(土)'
-            else free_list.weeks == 6:
+            elif free_list.weeks == 6:
                 youbi = '(日)'
 
             hatsugen = str(free_list[i].month) + '/' + str(free_list[i].day) + youbi
             message.reply(hatsugen)
-            #message.reply(str(free_list[i].month) + "/", end="")
-            #message.reply(str(free_list[i].day))
             i += 1
-            
+        
     else:
         message.reply("Oh, I didn't expect that.")
     
