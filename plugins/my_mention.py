@@ -29,11 +29,19 @@ boshu_end_str = '20180731'
 boshu_start = datetime.datetime.strptime(boshu_start_str, "%Y%m%d")
 boshu_end = datetime.datetime.strptime(boshu_end_str, "%Y%m%d")
 
+
+everyone_busy_set = set()
+everyone_free_set = set()
+
 #各set初期化
 def schedule_init():
-    everyone_busy_set = set()
-    everyone_free_set = set()
+    global everyone_busy_set
+    global everyone_free_set
 
+    #busy_setを空に
+    everyone_busy_set = set()
+
+    #free_setに毎日入れる
     calc_date = boshu_start
     while calc_date <= boshu_end:
         everyone_free_set.add(calc_date)
@@ -86,19 +94,19 @@ def scheduleend_func(message):
         i=0
         while i < len(free_list):
             
-            if free_list.weeks == 0:
+            if free_list[i].weekday() == 0:
                 youbi = '(月)'
-            elif free_list.weeks == 1:
+            elif free_list[i].weekday() == 1:
                 youbi = '(火)'
-            elif free_list.weeks == 2:
+            elif free_list[i].weekday() == 2:
                 youbi = '(水)'
-            elif free_list.weeks == 3:
+            elif free_list[i].weekday() == 3:
                 youbi = '(木)'
-            elif free_list.weeks == 4:
+            elif free_list[i].weekday() == 4:
                 youbi = '(金)'
-            elif free_list.weeks == 5:
+            elif free_list[i].weekday() == 5:
                 youbi = '(土)'
-            elif free_list.weeks == 6:
+            elif free_list[i].weekday() == 6:
                 youbi = '(日)'
 
             hatsugen = str(free_list[i].month) + '/' + str(free_list[i].day) + youbi
