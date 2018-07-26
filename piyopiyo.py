@@ -25,6 +25,8 @@ boshu_end = datetime.datetime.strptime(boshu_end_str, "%Y%m%d")
 #URL1 = args[1]
 #URL2 = args[2]
 
+URL1 = "https://calendar.google.com/calendar/ical/eru9j8labfq0245qeqk39ukr2s%40group.calendar.google.com/private-fef71c3d0112f19c2480d97e2756c376/basic.ics"
+URL2 = "https://calendar.google.com/calendar/ical/aliko62mpof47ljh98jn32crb0%40group.calendar.google.com/private-3f1a02b50c5e5bf0dc9d9a88815e0735/basic.ics"
 
 file_name1 = 'data/Kyokosan.ics'
 #file_name2 = 'Godaisan.ics'
@@ -128,17 +130,10 @@ class Ikkokukan():
         everyone_busy_set = everyone_busy_set | self.busy_set
 
 
-#インスタンス作成
-kyokosan = Ikkokukan()
-godaisan = Ikkokukan()
-
 #フラグ
 isMatch = False
 inviteEnd = False
 marry = False
-
-#ループ変数
-day = 1
 
 #everyone_free_setを初期化（期限内の全ての日時を追加）
 calc_date = boshu_start
@@ -181,11 +176,18 @@ while i < len(l_DTSTART):
     i += 1
 '''
 
+
+#インスタンス作成
+kyokosan = Ikkokukan()
+godaisan = Ikkokukan()
+
 kyokosan.listen_url()
 #print("str:"+kyokosan.url_schedule)
 #kyokosan.show_url()
 #kyokosan.set_url("https://calendar.google.com/calendar/ical/eru9j8labfq0245qeqk39ukr2s%40group.calendar.google.com/private-fef71c3d0112f19c2480d97e2756c376/basic.ics")
 kyokosan.url_to_busy()
+kyokosan.schedule_busy_show()
+print(kyokosan.busy_set)
 #print("響子さんの忙しい日リスト:")
 #kyokosan.schedule_busy_show()
 everyone_busy_set = everyone_busy_set | kyokosan.busy_set
@@ -196,7 +198,6 @@ godaisan.listen_url()
 godaisan.url_to_busy()
 #print("五代さんの忙しい日リスト:")
 #godaisan.schedule_busy_show()
-godaisan
 everyone_busy_set = everyone_busy_set | godaisan.busy_set
 
 #全員の忙しい日セットから暇な日セットを作る

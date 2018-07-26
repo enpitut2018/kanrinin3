@@ -8,7 +8,10 @@
 
 ・[Googleカレンダー](https://calendar.google.com/)のエクスポートファイル(ics形式)をサポートします   
 
+## 何を使うか
+
+・Python 3.6.1にて動作確認 
 
 ## 何が管理人さんなのか
 
-![ささっ](http://www.ne.jp/asahi/rumic/k-asuka/c_images/Maison3.jpg "僕にもわからないです")
+![ささっ](http://www.ne.jp/asahi/rumic/k-asuka/c_images/Maison3.jpg "管理人さんは管理人さんです")
