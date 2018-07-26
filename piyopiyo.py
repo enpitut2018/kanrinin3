@@ -13,6 +13,8 @@ args = sys.argv
 
 boshu_start_str = '20180701'
 boshu_end_str = '20180731'
+boshu_start_hour = '0800'
+boshu_start_hour = '2200'
 
 file_path = "data/schedule.ics"
 
@@ -58,19 +60,19 @@ class Ikkokukan():
         print(self.busy_set)
 
     #標準入力のurlから忙しいリストを作成
-    def set_busy_test(self):
-        self.listen_url()
+    def run(self):
         self.url_to_ics()
         self.ics_to_busy()
 
-    def url_to_busy(self):
-        self.url_to_ics()
-        self.ics_to_busy()
-
-    #標準入力からurl受け取り（テスト用）
+    #標準入力からurl受け取り
     def listen_url(self):
         print('URL?:')
-        self.set_url(input())
+        input_url = input()
+        if input_url == 'end':
+            return True
+        else:
+            self.set_url(input_url)
+            return False
 
     #カレンダーのurlをセット
     def set_url(self,url):
@@ -102,38 +104,45 @@ class Ikkokukan():
         #抽出した各行を日付形式に変換してリストに保存
         i=0
         while i < len(l_DTSTART):
+
             #予定開始日
-            matchObj_start = re.search(r'[0-9]{8}', l_DTSTART[i])
+            matchObj_start = re.search('[0-9]{8}', l_DTSTART[i])
+            ##matchObj_start = re.search('[0-9]{8}T[0-9]{6}', l_DTSTART[i])
+            #print(matchObj_start)
+
             #日付型に変換
             date_formatted_start = datetime.datetime.strptime(matchObj_start.group(), "%Y%m%d")
+            #date_formatted_start = datetime.datetime.strptime(matchObj_start.group(), "%Y%m%dT%H%M%S")
+
+            #date_formatted_start = date_formatted_start + datetime.timedelta(hours=9)
             #print("start: ", end="")
             #print(date_formatted_start.date())
 
             #予定終了日
-            matchObj_end = re.search(r'[0-9]{8}', l_DTEND[i])
+            matchObj_end = re.search('[0-9]{8}', l_DTEND[i])
+            #matchObj_end = re.search('[0-9]{8}T[0-9]{6}', l_DTEND[i])
+
             #日付型に変換
             date_formatted_end = datetime.datetime.strptime(matchObj_end.group(), "%Y%m%d")
+            #date_formatted_end = datetime.datetime.strptime(matchObj_end.group(), "%Y%m%dT%H%M%S")
+
+            #date_formatted_end = date_formatted_end + datetime.timedelta(hours=9)
             #print('end  : ', end="")
             #print(date_formatted_end.date())
 
             #予定のある日を計算
             calc_date = date_formatted_start
             while calc_date < date_formatted_end:
-                godaisan.schedule_busy_add(calc_date)
+                self.schedule_busy_add(calc_date)
                 calc_date = calc_date + datetime.timedelta(days=1)
-
+            
             i += 1
-
-    #みんなの忙しいリストに自分の忙しいリストを追加
-    #全員の忙しい日セット == 個人の忙しい日セットの和集合
-    def union_busy(self):
-        everyone_busy_set = everyone_busy_set | self.busy_set
-
 
 #フラグ
 isMatch = False
 inviteEnd = False
-marry = False
+byebye_flag = False
+
 
 #everyone_free_setを初期化（期限内の全ての日時を追加）
 calc_date = boshu_start
@@ -176,29 +185,23 @@ while i < len(l_DTSTART):
     i += 1
 '''
 
+while byebye_flag == False:
 
-#インスタンス作成
-kyokosan = Ikkokukan()
-godaisan = Ikkokukan()
+    #インスタンス作成
+    kyokosan = Ikkokukan()
 
-kyokosan.listen_url()
-#print("str:"+kyokosan.url_schedule)
-#kyokosan.show_url()
-#kyokosan.set_url("https://calendar.google.com/calendar/ical/eru9j8labfq0245qeqk39ukr2s%40group.calendar.google.com/private-fef71c3d0112f19c2480d97e2756c376/basic.ics")
-kyokosan.url_to_busy()
-kyokosan.schedule_busy_show()
-print(kyokosan.busy_set)
-#print("響子さんの忙しい日リスト:")
-#kyokosan.schedule_busy_show()
-everyone_busy_set = everyone_busy_set | kyokosan.busy_set
+    if kyokosan.listen_url():
+        byebye_flag = True
+    else:
+        kyokosan.run()
+        
+        #print("響子さんの忙しい日リスト:")
+        #kyokosan.schedule_busy_show()
+        
+        #みんなの忙しいリストに自分の忙しいリストを追加
+        #全員の忙しい日セット == 個人の忙しい日セットの和集合
+        everyone_busy_set = everyone_busy_set | kyokosan.busy_set
 
-godaisan.listen_url()
-#godaisan.set_url("https://calendar.google.com/calendar/ical/aliko62mpof47ljh98jn32crb0%40group.calendar.google.com/private-3f1a02b50c5e5bf0dc9d9a88815e0735/basic.ics")
-#godaisan.show_url()
-godaisan.url_to_busy()
-#print("五代さんの忙しい日リスト:")
-#godaisan.schedule_busy_show()
-everyone_busy_set = everyone_busy_set | godaisan.busy_set
 
 #全員の忙しい日セットから暇な日セットを作る
 #全員の忙しい日セットの補集合 == 全員が暇な日セット
