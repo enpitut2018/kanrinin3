@@ -16,13 +16,16 @@ import re #文章を分割するためのライブラリ
 
 import datetime
 #python2.79以降必要
+#ファイルをダウンロードする許可
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
 ScheFlag = 0
 URL = ''
+help_count = 0
 
 file_path = "data/schedule.ics"
+database_path = "Database.txt"
 
 boshu_start_str = '20180701'
 boshu_end_str = '20180731'
@@ -62,7 +65,7 @@ def schedule_init():
 # message.send('string')    string を送信
 # message.react('icon_emoji')  発言者のメッセージにリアクション(スタンプ)する
 #                               文字列中に':'はいらない
-@respond_to('start')
+@respond_to(r'^start$')
 def schedulestart_func(message):
     global ScheFlag
 
@@ -72,13 +75,13 @@ def schedulestart_func(message):
         #splited = re.split('\s', text.replace('.', ''))
         #message.reply(splited[1]) # メンション
         schedule_init()
-        message.reply("Let's scheduling！Move input faze.")
+        message.reply("日程調整を開始します．参加者を登録してください．")
         ScheFlag = 1
         
     else:
         message.reply("You forgot [scheduleend]...？")
 
-@respond_to('end')
+@respond_to(r'^end$')
 def scheduleend_func(message):
     global ScheFlag
     global everyone_busy_set
@@ -86,7 +89,7 @@ def scheduleend_func(message):
 
     if ScheFlag == 1:
         ScheFlag = 0
-        message.reply("I will informed you of the convenient days for everyone!!!!")
+        message.reply("参加者の共通の休みを表示します")
         everyone_free_set = everyone_free_set - everyone_busy_set
         #暇な日セットをソートしてからリスト型に保存
         free_list = sorted(everyone_free_set)
@@ -110,7 +113,7 @@ def scheduleend_func(message):
                 youbi = '(日)'
 
             hatsugen = str(free_list[i].month) + '/' + str(free_list[i].day) + youbi
-            message.reply(hatsugen)
+            message.send(hatsugen)
             i += 1
         
     else:
@@ -121,15 +124,43 @@ def flag_func(message):
     global ScheFlag
     message.reply(str(ScheFlag))
 
+@respond_to(r'^help$')
+def help_func(message):
+    global help_count
+
+    if help_count > 2:
+        message.send('start           : スケジュール調整を開始します')
+        message.send('$アカウント名     : 調整リストに追加  (例)$kyoko')
+        message.send('end             : 調整した日を表示します')
+    else:
+        message.reply('頑張ってくださいね！')
+        help_count += 1
+
+@respond_to(r'^set$')
+def set_func(message):
+    message.reply("URLをセットすると言ったな，あれは嘘だ")
+
+@respond_to(r'^set\s.+$')
+def set_func(message):
+    message.reply("URLをセットすると言ったな，あれは嘘だ")
+
 @listen_to("だるい")
 def listen_func(message):
-    message.send('誰かがだるいと投稿したようだ')      # ただの投稿
-    message.reply('お前かーーー！！！！')                           # メンション
+    message.reply('大丈夫ですか？ご飯作りましょうか？')
+
+@listen_to("管理人")
+def listen_func(message):
+    message.send('一刻館の管理人をしています，音無響子と申します！')      # ただの投稿
 
 @respond_to('cool') #ハッシュがついていたら、
 def cool_func(message):
     message.reply('Thank you. スタンプ押しとくね')     # メンション
     message.react('+1')     # リアクション
+
+@listen_to('hot') #ハッシュがついていたら、
+def hot_func(message):
+    message.reply('ファッキンホット(クソ暑い)')     # メンション
+    message.react('hotsprings')     # リアクション
 
 @default_reply()
 def default_func(message):
@@ -140,37 +171,52 @@ def default_func(message):
     if ScheFlag == 1:
         text = message.body['text']     # メッセージを取り出す
        
-        #ファイルをオープン
-        file = open("DataBase.txt")
-        lines = file.readlines()
-        file.close()
-
-        #データベースを１行ずつ検索して、見つかったらその日のURLを渡してあげる
-        for line in lines:
-           if line.find(text) >= 0:
-                d = re.search("(.*) (.*)", line)
-                URL = d.group(2)
-                #message.reply(d.group(2))
-                message.reply("Success!! Any other?")
-                flag = 1
-                
-                #インスタンス生成
-                kyokosan = Ikkokukan()
-
-                kyokosan.set_url(URL)
-                kyokosan.run()
-        
-                #みんなの忙しいリストに自分の忙しいリストを追加
-                #全員の忙しい日セット == 個人の忙しい日セットの和集合
+        #message.send(text)
+        matchObj_url = re.search(r'^.*https://calendar\.google\.com/calendar/ical/.+basic\.ics.*', text)
+        #str_mo = str(matchObj_url)
+        #message.send(str_mo)
+        if matchObj_url != None:
+            kyokosan = Ikkokukan()
+            kyokosan.set_url(matchObj_url.group())
+            try:
+                kyokosan.url_to_ics()
+                kyokosan.ics_to_busy()
                 everyone_busy_set = everyone_busy_set | kyokosan.busy_set
+                message.send('Googleカレンダーから予定をインポートしました．')
+            except:
+                message.reply('urlを開けませんでした...')
+        else:
+            #ファイルをオープン
+            file = open("DataBase.txt")
+            lines = file.readlines()
+            file.close()
 
-                
-        #検索ができなかった場合
-        if flag == 0:
-            message.reply("Sorry, I don't know...")
+            #データベースを１行ずつ検索して、見つかったらその日のURLを渡してあげる
+            for line in lines:
+                if line.find(text) >= 0:
+                    d = re.search("(.*) (.*)", line)
+                    URL = d.group(2)
+                    #message.reply(d.group(2))
+                    message.reply("登録されたIDから予定をインポートしました")
+                    flag = 1
+                    
+                    #インスタンス生成
+                    kyokosan = Ikkokukan()
+
+                    kyokosan.set_url(URL)
+                    kyokosan.run()
+            
+                    #みんなの忙しいリストに自分の忙しいリストを追加
+                    #全員の忙しい日セット == 個人の忙しい日セットの和集合
+                    everyone_busy_set = everyone_busy_set | kyokosan.busy_set
+
+            #検索ができなかった場合
+            if flag == 0:
+                message.reply("IDまたはGoogleカレンダーのURLを指定してください...")
 
     else:
-        message.reply("うっせ！ばか！")
+        message.reply('お困りの際はいつでも私宛てに「help」と仰ってくださいね！')
+        message.send("こっこっ，この，む...無職の甲斐性なしの貧乏人っっっ！")
 
 
 class Ikkokukan():
