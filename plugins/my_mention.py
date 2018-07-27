@@ -23,6 +23,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 ScheFlag = 0
 URL = ''
 help_count = 0
+empty_flag = True
 
 file_path = "data/schedule.ics"
 database_path = "Database.txt"
@@ -86,40 +87,47 @@ def scheduleend_func(message):
     global ScheFlag
     global everyone_busy_set
     global everyone_free_set
+    global empty_flag
 
-    if ScheFlag == 1:
-        ScheFlag = 0
-        message.reply("参加者の共通の休みを表示します")
-        everyone_free_set = everyone_free_set - everyone_busy_set
-        #暇な日セットをソートしてからリスト型に保存
-        free_list = sorted(everyone_free_set)
+    if empty_flag == False:
+        if ScheFlag == 1:
+            ScheFlag = 0
+            message.reply("参加者の共通の休みを表示します")
+            everyone_free_set = everyone_free_set - everyone_busy_set
+            #暇な日セットをソートしてからリスト型に保存
+            free_list = sorted(everyone_free_set)
+            empty_flag = True
 
-        i=0
-        while i < len(free_list):
+            i=0
+            while i < len(free_list):
+                
+                if free_list[i].weekday() == 0:
+                    youbi = '(月)'
+                elif free_list[i].weekday() == 1:
+                    youbi = '(火)'
+                elif free_list[i].weekday() == 2:
+                    youbi = '(水)'
+                elif free_list[i].weekday() == 3:
+                    youbi = '(木)'
+                elif free_list[i].weekday() == 4:
+                    youbi = '(金)'
+                elif free_list[i].weekday() == 5:
+                    youbi = '(土)'
+                elif free_list[i].weekday() == 6:
+                    youbi = '(日)'
+
+                hatsugen = str(free_list[i].month) + '/' + str(free_list[i].day) + youbi
+                message.send(hatsugen)
+                i += 1
             
-            if free_list[i].weekday() == 0:
-                youbi = '(月)'
-            elif free_list[i].weekday() == 1:
-                youbi = '(火)'
-            elif free_list[i].weekday() == 2:
-                youbi = '(水)'
-            elif free_list[i].weekday() == 3:
-                youbi = '(木)'
-            elif free_list[i].weekday() == 4:
-                youbi = '(金)'
-            elif free_list[i].weekday() == 5:
-                youbi = '(土)'
-            elif free_list[i].weekday() == 6:
-                youbi = '(日)'
-
-            hatsugen = str(free_list[i].month) + '/' + str(free_list[i].day) + youbi
-            message.send(hatsugen)
-            i += 1
-        
+        else:
+            message.reply("Oh, I didn't expect that.")
+    #enpty_flag == True
     else:
-        message.reply("Oh, I didn't expect that.")
-    
-@respond_to('flag')
+        message.reply('startって言ったくせに…若くてかわいいガールフレンドがいるんじゃないの…私をからかったんだわ。ひどい…女心を弄んで……')
+        ScheFlag = 0
+
+@respond_to(r'^flag$')
 def flag_func(message):
     global ScheFlag
     message.reply(str(ScheFlag))
@@ -132,6 +140,7 @@ def help_func(message):
         message.send('start           : スケジュール調整を開始します')
         message.send('$アカウント名     : 調整リストに追加  (例)$kyoko')
         message.send('end             : 調整した日を表示します')
+        help_count = 0
     else:
         message.reply('頑張ってくださいね！')
         help_count += 1
@@ -150,7 +159,7 @@ def listen_func(message):
 
 @listen_to("管理人")
 def listen_func(message):
-    message.send('一刻館の管理人をしています，音無響子と申します！')      # ただの投稿
+    message.send('一刻館の管理人をしています，音無響子と申します！')
 
 @respond_to('cool') #ハッシュがついていたら、
 def cool_func(message):
@@ -162,19 +171,28 @@ def hot_func(message):
     message.reply('ファッキンホット(クソ暑い)')     # メンション
     message.react('hotsprings')     # リアクション
 
+@listen_to('五代')
+def godai_func(message):
+    message.reply('五代さん，はい')
+    message.react('godai')
+
 @default_reply()
 def default_func(message):
     global ScheFlag
     global URL
     global everyone_busy_set
+    global empty_flag
     flag = 0
     if ScheFlag == 1:
         text = message.body['text']     # メッセージを取り出す
        
         #message.send(text)
         matchObj_url = re.search(r'^.*https://calendar\.google\.com/calendar/ical/.+basic\.ics.*', text)
-        #str_mo = str(matchObj_url)
-        #message.send(str_mo)
+        matchObj_id = re.match(r'^.*\$.+', text)
+        str_mo = str(matchObj_url)
+        message.send(str_mo)
+        str_mo = str(matchObj_id)
+        message.send(str_mo)
         if matchObj_url != None:
             kyokosan = Ikkokukan()
             kyokosan.set_url(matchObj_url.group())
@@ -183,36 +201,49 @@ def default_func(message):
                 kyokosan.ics_to_busy()
                 everyone_busy_set = everyone_busy_set | kyokosan.busy_set
                 message.send('Googleカレンダーから予定をインポートしました．')
+                empty_flag = False
+                matchObj_url = ''
             except:
                 message.reply('urlを開けませんでした...')
-        else:
+        elif matchObj_id != None:
             #ファイルをオープン
             file = open("DataBase.txt")
             lines = file.readlines()
             file.close()
 
+            mitsukarimashita = False
             #データベースを１行ずつ検索して、見つかったらその日のURLを渡してあげる
             for line in lines:
                 if line.find(text) >= 0:
                     d = re.search("(.*) (.*)", line)
                     URL = d.group(2)
+                    message.send(URL)
                     #message.reply(d.group(2))
-                    message.reply("登録されたIDから予定をインポートしました")
                     flag = 1
                     
                     #インスタンス生成
                     kyokosan = Ikkokukan()
+                    try:
+                        kyokosan.set_url(URL)
+                        kyokosan.run()
+                        #みんなの忙しいリストに自分の忙しいリストを追加
+                        #全員の忙しい日セット == 個人の忙しい日セットの和集合
+                        everyone_busy_set = everyone_busy_set | kyokosan.busy_set
+                        message.reply("登録されたIDから予定をインポートしました")
+                        mitsukarimashita = True
+                        empty_flag = False
+                    except:
+                        message.reply('IDを開けませんでした...')
+                    break
+            if mitsukarimashita == False:
+                message.reply('電話帳にお名前が見つかりません...')
 
-                    kyokosan.set_url(URL)
-                    kyokosan.run()
-            
-                    #みんなの忙しいリストに自分の忙しいリストを追加
-                    #全員の忙しい日セット == 個人の忙しい日セットの和集合
-                    everyone_busy_set = everyone_busy_set | kyokosan.busy_set
+            mitsukarimashita = False
 
             #検索ができなかった場合
             if flag == 0:
                 message.reply("IDまたはGoogleカレンダーのURLを指定してください...")
+        text = ''
 
     else:
         message.reply('お困りの際はいつでも私宛てに「help」と仰ってくださいね！')
