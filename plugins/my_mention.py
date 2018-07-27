@@ -182,17 +182,16 @@ def default_func(message):
     global URL
     global everyone_busy_set
     global empty_flag
-    flag = 0
     if ScheFlag == 1:
         text = message.body['text']     # メッセージを取り出す
        
         #message.send(text)
         matchObj_url = re.search(r'^.*https://calendar\.google\.com/calendar/ical/.+basic\.ics.*', text)
         matchObj_id = re.match(r'^.*\$.+', text)
-        str_mo = str(matchObj_url)
-        message.send(str_mo)
-        str_mo = str(matchObj_id)
-        message.send(str_mo)
+        #str_mo = str(matchObj_url)
+        #message.send(str_mo)
+        #str_mo = str(matchObj_id)
+        #message.send(str_mo)
         if matchObj_url != None:
             kyokosan = Ikkokukan()
             kyokosan.set_url(matchObj_url.group())
@@ -219,13 +218,13 @@ def default_func(message):
                     URL = d.group(2)
                     message.send(URL)
                     #message.reply(d.group(2))
-                    flag = 1
                     
                     #インスタンス生成
                     kyokosan = Ikkokukan()
                     try:
                         kyokosan.set_url(URL)
-                        kyokosan.run()
+                        kyokosan.url_to_ics()
+                        kyokosan.ics_to_busy()
                         #みんなの忙しいリストに自分の忙しいリストを追加
                         #全員の忙しい日セット == 個人の忙しい日セットの和集合
                         everyone_busy_set = everyone_busy_set | kyokosan.busy_set
@@ -241,8 +240,8 @@ def default_func(message):
             mitsukarimashita = False
 
             #検索ができなかった場合
-            if flag == 0:
-                message.reply("IDまたはGoogleカレンダーのURLを指定してください...")
+        else:
+            message.reply("IDまたはGoogleカレンダーのURLを指定してください...")
         text = ''
 
     else:
