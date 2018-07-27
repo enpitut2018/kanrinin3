@@ -1,2 +1,4 @@
 $kyoko https://calendar.google.com/calendar/ical/eru9j8labfq0245qeqk39ukr2s%40group.calendar.google.com/private-fef71c3d0112f19c2480d97e2756c376/basic.ics
 $godai https://calendar.google.com/calendar/ical/aliko62mpof47ljh98jn32crb0%40group.calendar.google.com/private-3f1a02b50c5e5bf0dc9d9a88815e0735/basic.ics
+$yotsuya https://calendar.google.com/calendar/ical/otc0r13bd7emrftfaivi7qqm4k%40group.calendar.google.com/private-0be666324e115e61b8445cb5e70fa850/basic.ics
+$akemi https://calendar.google.com/calendar/ical/dr803jt9ihjndci56its82ea7s%40group.calendar.google.com/private-91dd1b227c4725af34b3b47f80a941ae/basic.ics

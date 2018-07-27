@@ -29,9 +29,14 @@ file_path = "data/schedule.ics"
 database_path = "Database.txt"
 
 boshu_start_str = '20180701'
-boshu_end_str = '20180731'
+boshu_end_str = '20180707'
+#現状start時間<end時間の場合しか対応してないです,終電で帰ってください
+boshu_starthour = 8
+boshu_endhour = 22
 boshu_start = datetime.datetime.strptime(boshu_start_str, "%Y%m%d")
+boshu_start = boshu_start.replace(hour=boshu_starthour)
 boshu_end = datetime.datetime.strptime(boshu_end_str, "%Y%m%d")
+boshu_end = boshu_end.replace(hour=boshu_endhour)
 
 
 everyone_busy_set = set()
@@ -45,11 +50,15 @@ def schedule_init():
     #busy_setを空に
     everyone_busy_set = set()
 
-    #free_setに毎日入れる
+    #free_setに範囲内の時間全て入れる
     calc_date = boshu_start
     while calc_date <= boshu_end:
+        #22時になったら翌8時にスキップみたいなことしてる
+        if calc_date.hour >= boshu_endhour:
+            calc_date = calc_date.replace(hour=boshu_starthour)
+            calc_date = calc_date + datetime.timedelta(days=1)
         everyone_free_set.add(calc_date)
-        calc_date = calc_date + datetime.timedelta(days=1)
+        calc_date = calc_date + datetime.timedelta(hours=1)
 
 # @respond_to('string')     bot宛のメッセージ
 #                           stringは正規表現が可能 「r'string'」
@@ -87,19 +96,23 @@ def scheduleend_func(message):
     global ScheFlag
     global everyone_busy_set
     global everyone_free_set
+    global boshu_start_str
+    global boshu_end_str
     global empty_flag
 
     if empty_flag == False:
         if ScheFlag == 1:
             ScheFlag = 0
-            message.reply("参加者の共通の休みを表示します")
+            message.reply("皆さんが参加できる日はこちらになります.")
+            hatsugen = "期間："+boshu_start_str+"-"+boshu_end_str+" "+str(boshu_starthour)+":00 - "+str(boshu_endhour)+":00"
+            message.send(hatsugen)
             everyone_free_set = everyone_free_set - everyone_busy_set
             #暇な日セットをソートしてからリスト型に保存
             free_list = sorted(everyone_free_set)
             empty_flag = True
 
             i=0
-            while i < len(free_list):
+            while i+1 < len(free_list):
                 
                 if free_list[i].weekday() == 0:
                     youbi = '(月)'
@@ -116,9 +129,17 @@ def scheduleend_func(message):
                 elif free_list[i].weekday() == 6:
                     youbi = '(日)'
 
-                hatsugen = str(free_list[i].month) + '/' + str(free_list[i].day) + youbi
+                hatsugen = str(free_list[i].month) + '/' + str(free_list[i].day) + youbi + " " + str(free_list[i].hour) + ":00 - "
+
+                free_list[i] = free_list[i] + datetime.timedelta(hours=1)
+                while i+1 < len(free_list) and free_list[i].hour == free_list[i+1].hour:
+                    i += 1
+                    free_list[i] = free_list[i] + datetime.timedelta(hours=1)
+                hatsugen = hatsugen + str(free_list[i].hour) + ":00"
+
                 message.send(hatsugen)
                 i += 1
+            message.send("頑張ってくださいね！")
             
         else:
             message.reply("Oh, I didn't expect that.")
@@ -136,14 +157,14 @@ def flag_func(message):
 def help_func(message):
     global help_count
 
-    if help_count > 2:
+    if help_count < 2:
         message.send('start           : スケジュール調整を開始します')
         message.send('$アカウント名     : 調整リストに追加  (例)$kyoko')
         message.send('end             : 調整した日を表示します')
-        help_count = 0
-    else:
-        message.reply('頑張ってくださいね！')
         help_count += 1
+    else:
+        message.reply('大変！！今すぐ救急車を呼びます！！')
+        help_count = 0
 
 @respond_to(r'^set$')
 def set_func(message):
@@ -159,7 +180,7 @@ def listen_func(message):
 
 @listen_to("管理人")
 def listen_func(message):
-    message.send('一刻館の管理人をしています，音無響子と申します！')
+    message.send('一刻館の管理人をしています，音無響子と申します')
 
 @respond_to('cool') #ハッシュがついていたら、
 def cool_func(message):
@@ -216,7 +237,6 @@ def default_func(message):
                 if line.find(text) >= 0:
                     d = re.search("(.*) (.*)", line)
                     URL = d.group(2)
-                    message.send(URL)
                     #message.reply(d.group(2))
                     
                     #インスタンス生成
@@ -246,7 +266,7 @@ def default_func(message):
 
     else:
         message.reply('お困りの際はいつでも私宛てに「help」と仰ってくださいね！')
-        message.send("こっこっ，この，む...無職の甲斐性なしの貧乏人っっっ！")
+        #message.send("こっこっ，この，む...無職の甲斐性なしの貧乏人っっっ！")
 
 
 class Ikkokukan():
@@ -269,20 +289,11 @@ class Ikkokukan():
     def schedule_busy_show(self):
         print(self.busy_set)
 
-    #標準入力のurlから忙しいリストを作成
+    #忙しいリストを作成
+    #事前にset_urlが必要
     def run(self):
         self.url_to_ics()
         self.ics_to_busy()
-
-    #標準入力からurl受け取り
-    def listen_url(self):
-        print('URL?:')
-        input_url = input()
-        if input_url == 'end':
-            return True
-        else:
-            self.set_url(input_url)
-            return False
 
     #カレンダーのurlをセット
     def set_url(self,url):
@@ -291,7 +302,7 @@ class Ikkokukan():
     #セットされたカレンダーのurlを表示
     #事前にset_urlが必要
     def show_url(self):
-        print("url:"+self.url_schedule)
+        message.send("url:"+self.url_schedule)
 
     #urlからicsファイル取得
     #事前にset_urlが必要
@@ -316,34 +327,39 @@ class Ikkokukan():
         while i < len(l_DTSTART):
 
             #予定開始日
-            matchObj_start = re.search('[0-9]{8}', l_DTSTART[i])
-            ##matchObj_start = re.search('[0-9]{8}T[0-9]{6}', l_DTSTART[i])
-            #print(matchObj_start)
-
+            #時間設定を含む予定の場合
+            matchObj_start = re.search('[0-9]{8}T[0-9]{2}', l_DTSTART[i])
             #日付型に変換
-            date_formatted_start = datetime.datetime.strptime(matchObj_start.group(), "%Y%m%d")
-            #date_formatted_start = datetime.datetime.strptime(matchObj_start.group(), "%Y%m%dT%H%M%S")
-
-            #date_formatted_start = date_formatted_start + datetime.timedelta(hours=9)
-            #print("start: ", end="")
-            #print(date_formatted_start.date())
+            if matchObj_start != None:
+                date_formatted_start = datetime.datetime.strptime(matchObj_start.group(), "%Y%m%dT%H")
+                date_formatted_start = date_formatted_start + datetime.timedelta(hours=9)
+                #print(date_formatted_start)
+            
+            #終日設定の予定の場合
+            else:
+                matchObj_start = re.search('[0-9]{8}', l_DTSTART[i])
+                #日付型に変換
+                date_formatted_start = datetime.datetime.strptime(matchObj_start.group(), "%Y%m%d")
 
             #予定終了日
-            matchObj_end = re.search('[0-9]{8}', l_DTEND[i])
-            #matchObj_end = re.search('[0-9]{8}T[0-9]{6}', l_DTEND[i])
+            #時間設定を含む予定の場合
+            matchObj_end = re.search('[0-9]{8}T[0-9]{2}', l_DTEND[i])
+            if matchObj_end != None:
+                date_formatted_end = datetime.datetime.strptime(matchObj_end.group(), "%Y%m%dT%H")
+                date_formatted_end = date_formatted_end + datetime.timedelta(hours=9)
+                #print(date_formatted_end)
+            
+            #終日設定の予定の場合
+            else:
+                matchObj_end = re.search('[0-9]{8}', l_DTEND[i])
 
-            #日付型に変換
-            date_formatted_end = datetime.datetime.strptime(matchObj_end.group(), "%Y%m%d")
-            #date_formatted_end = datetime.datetime.strptime(matchObj_end.group(), "%Y%m%dT%H%M%S")
+                #日付型に変換
+                date_formatted_end = datetime.datetime.strptime(matchObj_end.group(), "%Y%m%d")
 
-            #date_formatted_end = date_formatted_end + datetime.timedelta(hours=9)
-            #print('end  : ', end="")
-            #print(date_formatted_end.date())
-
-            #予定のある日を計算
+            #予定のある時間をbusy_setに追加
             calc_date = date_formatted_start
             while calc_date < date_formatted_end:
                 self.schedule_busy_add(calc_date)
-                calc_date = calc_date + datetime.timedelta(days=1)
+                calc_date = calc_date + datetime.timedelta(hours=1)
             
             i += 1

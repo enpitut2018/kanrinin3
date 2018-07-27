@@ -12,9 +12,10 @@ ssl._create_default_https_context = ssl._create_unverified_context
 args = sys.argv
 
 boshu_start_str = '20180701'
-boshu_end_str = '20180731'
-boshu_start_hour = '0800'
-boshu_start_hour = '2200'
+boshu_end_str = '20180707'
+#現状start時間<end時間の場合しか対応してないです,終電で帰ってください
+boshu_starthour = 8
+boshu_endhour = 22
 
 file_path = "data/schedule.ics"
 
@@ -22,7 +23,9 @@ everyone_busy_set = set()
 everyone_free_set = set()
 
 boshu_start = datetime.datetime.strptime(boshu_start_str, "%Y%m%d")
+boshu_start = boshu_start.replace(hour=boshu_starthour)
 boshu_end = datetime.datetime.strptime(boshu_end_str, "%Y%m%d")
+boshu_end = boshu_end.replace(hour=boshu_endhour)
 
 #URL1 = args[1]
 #URL2 = args[2]
@@ -102,35 +105,42 @@ class Ikkokukan():
         while i < len(l_DTSTART):
 
             #予定開始日
-            matchObj_start = re.search('[0-9]{8}', l_DTSTART[i])
-            ##matchObj_start = re.search('[0-9]{8}T[0-9]{6}', l_DTSTART[i])
-            #print(matchObj_start)
-
+            #時間設定を含む予定の場合
+            matchObj_start = re.search('[0-9]{8}T[0-9]{2}', l_DTSTART[i])
             #日付型に変換
-            date_formatted_start = datetime.datetime.strptime(matchObj_start.group(), "%Y%m%d")
-            #date_formatted_start = datetime.datetime.strptime(matchObj_start.group(), "%Y%m%dT%H%M%S")
-
-            #date_formatted_start = date_formatted_start + datetime.timedelta(hours=9)
-            #print("start: ", end="")
-            #print(date_formatted_start.date())
+            if matchObj_start != None:
+                date_formatted_start = datetime.datetime.strptime(matchObj_start.group(), "%Y%m%dT%H")
+                date_formatted_start = date_formatted_start + datetime.timedelta(hours=9)
+                #print(date_formatted_start)
+            
+            #終日設定の予定の場合
+            else:
+                matchObj_start = re.search('[0-9]{8}', l_DTSTART[i])
+                #日付型に変換
+                date_formatted_start = datetime.datetime.strptime(matchObj_start.group(), "%Y%m%d")
+                #print(date_formatted_start)
 
             #予定終了日
-            matchObj_end = re.search('[0-9]{8}', l_DTEND[i])
-            #matchObj_end = re.search('[0-9]{8}T[0-9]{6}', l_DTEND[i])
+            #時間設定を含む予定の場合
+            matchObj_end = re.search('[0-9]{8}T[0-9]{2}', l_DTEND[i])
+            if matchObj_end != None:
+                date_formatted_end = datetime.datetime.strptime(matchObj_end.group(), "%Y%m%dT%H")
+                date_formatted_end = date_formatted_end + datetime.timedelta(hours=9)
+                #print(date_formatted_end)
+            
+            #終日設定の予定の場合
+            else:
+                matchObj_end = re.search('[0-9]{8}', l_DTEND[i])
+                #日付型に変換
+                date_formatted_end = datetime.datetime.strptime(matchObj_end.group(), "%Y%m%d")
+                #print(date_formatted_end)
 
-            #日付型に変換
-            date_formatted_end = datetime.datetime.strptime(matchObj_end.group(), "%Y%m%d")
-            #date_formatted_end = datetime.datetime.strptime(matchObj_end.group(), "%Y%m%dT%H%M%S")
-
-            #date_formatted_end = date_formatted_end + datetime.timedelta(hours=9)
-            #print('end  : ', end="")
-            #print(date_formatted_end.date())
-
-            #予定のある日を計算
+            #予定のある日をbusy_setに追加
+            #2日以上続く予定に対応するためこんな感じになってます
             calc_date = date_formatted_start
             while calc_date < date_formatted_end:
                 self.schedule_busy_add(calc_date)
-                calc_date = calc_date + datetime.timedelta(days=1)
+                calc_date = calc_date + datetime.timedelta(hours=1)
             
             i += 1
 
@@ -141,8 +151,11 @@ byebye_flag = False
 #everyone_free_setを初期化（期限内の全ての日時を追加）
 calc_date = boshu_start
 while calc_date <= boshu_end:
+    if calc_date.hour > boshu_endhour:
+        calc_date = calc_date.replace(hour=boshu_starthour)
+        calc_date = calc_date + datetime.timedelta(days=1)
     everyone_free_set.add(calc_date)
-    calc_date = calc_date + datetime.timedelta(days=1)
+    calc_date = calc_date + datetime.timedelta(hours=1)
 
 
 while byebye_flag == False:
@@ -176,8 +189,13 @@ print("I will inform you of the convenient days for everyone：")
 print("term："+boshu_start_str+"-"+boshu_end_str)
 i=0
 l_print = []
-while i < len(free_list):
+while i+1 < len(free_list):
     print(str(free_list[i].month) + "/", end="")
-    print(str(free_list[i].day))
+    print(str(free_list[i].day)," ",free_list[i].hour,":00 - ", end="")
+    free_list[i] = free_list[i] + datetime.timedelta(hours=1)
+    while i+1 < len(free_list) and free_list[i].hour == free_list[i+1].hour:
+        i += 1
+        free_list[i] = free_list[i] + datetime.timedelta(hours=1)
+    print(str(free_list[i].hour), ":00")
     i += 1
 print("Have a nice day!")
