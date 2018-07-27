@@ -13,8 +13,8 @@ from slackbot.bot import default_reply  # 該当する応答がない場合に�
 
 import urllib.request #ファイルを落とすのに必要
 import re #文章を分割するためのライブラリ
-
-import datetime
+import os #ファイル削除に使用
+import datetime #日付型を使用するのに必要
 #python2.79以降必要
 #ファイルをダウンロードする許可
 import ssl
@@ -28,16 +28,11 @@ empty_flag = True
 file_path = "data/schedule.ics"
 database_path = "Database.txt"
 
-boshu_start_str = '20180701'
-boshu_end_str = '20180707'
+boshu_start_str = '2018070108'
+boshu_end_str = '2018070722'
 #現状start時間<end時間の場合しか対応してないです,終電で帰ってください
-boshu_starthour = 8
-boshu_endhour = 22
-boshu_start = datetime.datetime.strptime(boshu_start_str, "%Y%m%d")
-boshu_start = boshu_start.replace(hour=boshu_starthour)
-boshu_end = datetime.datetime.strptime(boshu_end_str, "%Y%m%d")
-boshu_end = boshu_end.replace(hour=boshu_endhour)
-
+boshu_start = datetime.datetime.strptime(boshu_start_str, "%Y%m%d%H")
+boshu_end = datetime.datetime.strptime(boshu_end_str, "%Y%m%d%H")
 
 everyone_busy_set = set()
 everyone_free_set = set()
@@ -54,8 +49,8 @@ def schedule_init():
     calc_date = boshu_start
     while calc_date <= boshu_end:
         #22時になったら翌8時にスキップみたいなことしてる
-        if calc_date.hour >= boshu_endhour:
-            calc_date = calc_date.replace(hour=boshu_starthour)
+        if calc_date.hour >= boshu_end.hour:
+            calc_date = calc_date.replace(hour=boshu_start.hour)
             calc_date = calc_date + datetime.timedelta(days=1)
         everyone_free_set.add(calc_date)
         calc_date = calc_date + datetime.timedelta(hours=1)
@@ -96,15 +91,15 @@ def scheduleend_func(message):
     global ScheFlag
     global everyone_busy_set
     global everyone_free_set
-    global boshu_start_str
-    global boshu_end_str
+    global boshu_start
+    global boshu_end
     global empty_flag
 
     if ScheFlag == 1:
         if empty_flag == False:
             ScheFlag = 0
             message.reply("皆さんが参加できる日はこちらになります.")
-            hatsugen = "期間："+boshu_start_str+"-"+boshu_end_str+" "+str(boshu_starthour)+":00 - "+str(boshu_endhour)+":00"
+            hatsugen = "期間："+str(boshu_start.date())+" ~ "+str(boshu_end.date())+" "+str(boshu_start.hour)+":00 - "+str(boshu_end.hour)+":00"
             message.send(hatsugen)
             everyone_free_set = everyone_free_set - everyone_busy_set
             #暇な日セットをソートしてからリスト型に保存
@@ -159,21 +154,30 @@ def help_func(message):
     global help_count
 
     if help_count < 2:
-        message.send('start           : スケジュール調整を開始します')
-        message.send('$アカウント名     : 調整リストに追加  (例)$kyoko')
-        message.send('end             : 調整した日を表示します')
+        message.send('〜使い方〜\nstart\nでスケジュール調整を開始します\n$アカウント名 または GoogleカレンダーのURLを入力することで参加者に追加できます (例)$kyoko\nset 2018070108-2018073122\nのように入力することで，スケジュール範囲を 2018/7/1 ~ 2018/7/31 の 8:00 - 22:00 に設定します(デフォルトの範囲設定)\nend\nでスケジュール調整を終了し，全員が参加できる日を表示します')
         help_count += 1
     else:
         message.reply('大変！！今すぐ救急車を呼びます！！')
         help_count = 0
 
-@respond_to(r'^set$')
+@respond_to(r'^set\s[0-9]{10}-[0-9]{10}$')
 def set_func(message):
-    message.reply("URLをセットすると言ったな，あれは嘘だ")
+    global boshu_start
+    global boshu_end
+    text = message.body['text']
+    matchObj = re.findall('[0-9]{10}', text)
+    boshu_start = datetime.datetime.strptime(matchObj[0], "%Y%m%d%H")
+    boshu_end = datetime.datetime.strptime(matchObj[1], "%Y%m%d%H")
+    message.reply("募集期間を変えました！")
+    hatsugen = "期間："+str(boshu_start.date())+" ~ "+str(boshu_end.date())+" "+str(boshu_start.hour)+":00 - "+str(boshu_end.hour)+":00"
+    message.send(hatsugen)
+    schedule_init()
 
-@respond_to(r'^set\s.+$')
-def set_func(message):
+'''
+@respond_to(r'^set\shttps://calendar\.google\.com/calendar/ical/.+basic\.ics')
+def set_url_func(message):
     message.reply("URLをセットすると言ったな，あれは嘘だ")
+'''
 
 @listen_to("だるい")
 def listen_func(message):
@@ -364,3 +368,5 @@ class Ikkokukan():
                 calc_date = calc_date + datetime.timedelta(hours=1)
             
             i += 1
+        #使用したicsファイルを削除
+        os.remove(file_path)

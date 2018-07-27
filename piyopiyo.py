@@ -151,7 +151,7 @@ byebye_flag = False
 #everyone_free_setを初期化（期限内の全ての日時を追加）
 calc_date = boshu_start
 while calc_date <= boshu_end:
-    if calc_date.hour > boshu_endhour:
+    if calc_date.hour >= boshu_endhour:
         calc_date = calc_date.replace(hour=boshu_starthour)
         calc_date = calc_date + datetime.timedelta(days=1)
     everyone_free_set.add(calc_date)
