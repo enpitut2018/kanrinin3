@@ -100,8 +100,8 @@ def scheduleend_func(message):
     global boshu_end_str
     global empty_flag
 
-    if empty_flag == False:
-        if ScheFlag == 1:
+    if ScheFlag == 1:
+        if empty_flag == False:
             ScheFlag = 0
             message.reply("皆さんが参加できる日はこちらになります.")
             hatsugen = "期間："+boshu_start_str+"-"+boshu_end_str+" "+str(boshu_starthour)+":00 - "+str(boshu_endhour)+":00"
@@ -141,12 +141,13 @@ def scheduleend_func(message):
                 i += 1
             message.send("頑張ってくださいね！")
             
+        #startしたけど誰も追加せずにend
         else:
-            message.reply("Oh, I didn't expect that.")
-    #enpty_flag == True
+            message.reply('startって言ったくせに…若くてかわいいガールフレンドがいるんじゃないの…私をからかったんだわ。ひどい…女心を弄んで……')
+            ScheFlag = 0
+    #startしてないのにend
     else:
-        message.reply('startって言ったくせに…若くてかわいいガールフレンドがいるんじゃないの…私をからかったんだわ。ひどい…女心を弄んで……')
-        ScheFlag = 0
+        message.reply("Oh, I didn't expect that.")
 
 @respond_to(r'^flag$')
 def flag_func(message):
@@ -197,6 +198,12 @@ def godai_func(message):
     message.reply('五代さん，はい')
     message.react('godai')
 
+@listen_to('酒' or '酔' or '祭')
+def sake_func(message):
+    message.react('godai')
+    message.react('yotsuya')
+    message.react('kyoko')
+
 @default_reply()
 def default_func(message):
     global ScheFlag
@@ -238,6 +245,7 @@ def default_func(message):
                     d = re.search("(.*) (.*)", line)
                     URL = d.group(2)
                     #message.reply(d.group(2))
+                    mitsukarimashita = True
                     
                     #インスタンス生成
                     kyokosan = Ikkokukan()
@@ -249,7 +257,6 @@ def default_func(message):
                         #全員の忙しい日セット == 個人の忙しい日セットの和集合
                         everyone_busy_set = everyone_busy_set | kyokosan.busy_set
                         message.reply("登録されたIDから予定をインポートしました")
-                        mitsukarimashita = True
                         empty_flag = False
                     except:
                         message.reply('IDを開けませんでした...')
@@ -282,12 +289,6 @@ class Ikkokukan():
 
     def schedule_busy_add(self,date):
         self.busy_set.add(date)
-
-    def schedule_free_show(self):
-        print(self.free_set)
-
-    def schedule_busy_show(self):
-        print(self.busy_set)
 
     #忙しいリストを作成
     #事前にset_urlが必要
