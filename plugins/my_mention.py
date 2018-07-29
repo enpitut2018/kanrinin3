@@ -150,12 +150,13 @@ def flag_func(message):
     global ScheFlag
     message.reply(str(ScheFlag))
 
+#デバッグ用,非公開のurlを公開するので
 @respond_to(r'^showdb$')
 def showdb_funk(message):
     global database_path
     f = open(database_path, 'r')
     for line in f.readlines():
-    message.send(line)
+        message.send(line)
 
 @respond_to(r'^help$')
 def help_func(message):
