@@ -154,9 +154,9 @@ def flag_func(message):
 @respond_to(r'^showdb$')
 def showdb_funk(message):
     global database_path
-    f = open(database_path, 'r')
-    for line in f.readlines():
-        message.send(line)
+    with open(database_path, 'r') as f:
+        for line in f.readlines():
+            message.send(line)
 
 @respond_to(r'^help$')
 def help_func(message):
@@ -194,18 +194,14 @@ def reg_func(message):
     matchObj_url = re.search(r'https://calendar\.google\.com/calendar/ical/.+/private-.+/basic\.ics', text)
     #idとurlが揃っていれば
     if matchObj_id != None and matchObj_url != None:
-        try:
-            f = open(database_path,'a')
-        except:
-            message.send('データベースを開けませんでした...')
-        try:
-            f.write(matchObj_id.group())
-            f.write(matchObj_url.group()+'\n')
-            hatsugen = matchObj_id.group() + "をデータベースに登録しました"
-            message.send(hatsugen)
-            f.close()
-        except:
-            message.send('DBの登録に失敗しました...')
+        with open(database_path,'a') as f:
+            try:
+                f.write(matchObj_id.group())
+                f.write(matchObj_url.group()+'\n')
+                hatsugen = matchObj_id.group() + "をデータベースに登録しました"
+                message.send(hatsugen)
+            except:
+                message.send('DBの登録に失敗しました...')
     else:
         message.send('データベースに登録するには\nreg $(ユーザー名) [Googleカレンダーの非公開URL]\nと入力してください')
 
@@ -272,9 +268,8 @@ def default_func(message):
         #渡されたのがIDだった場合
         elif matchObj_id != None:
             #ファイルをオープン
-            file = open(database_path)
-            lines = file.readlines()
-            file.close()
+            with open(database_path) as file:
+                lines = file.readlines()
 
             mitsukarimashita = False
             #データベースを１行ずつ検索して、見つかったらその日のURLを渡してあげる
