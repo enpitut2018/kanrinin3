@@ -38,14 +38,11 @@ everyone_busy_set = set()
 everyone_free_set = set()
 
 #各set初期化
-def schedule_init():
-    global everyone_busy_set
+def everyone_free_init():
     global everyone_free_set
 
-    #busy_setを空に
-    everyone_busy_set = set()
-
-    #free_setに範囲内の時間全て入れる
+    #空のfree_setに範囲内の時間全て入れる
+    everyone_free_set = set()
     calc_date = boshu_start
     while calc_date <= boshu_end:
         #22時になったら翌8時にスキップみたいなことしてる
@@ -70,6 +67,7 @@ def schedule_init():
 # message.send('string')    string を送信
 # message.react('icon_emoji')  発言者のメッセージにリアクション(スタンプ)する
 #                               文字列中に':'はいらない
+
 @respond_to(r'^start$')
 def schedulestart_func(message):
     global ScheFlag
@@ -79,12 +77,13 @@ def schedulestart_func(message):
         #text = message.body['text']
         #splited = re.split('\s', text.replace('.', ''))
         #message.reply(splited[1]) # メンション
-        schedule_init()
-        message.reply("日程調整を開始します．参加者を登録してください．")
+        everyone_busy_set = set()
+        everyone_free_init()
+        message.send("日程調整を開始します．参加者を登録してください．")
         ScheFlag = 1
         
     else:
-        message.reply("You forgot [scheduleend]...？")
+        message.reply("already started.")
 
 @respond_to(r'^end$')
 def scheduleend_func(message):
@@ -97,14 +96,14 @@ def scheduleend_func(message):
 
     if ScheFlag == 1:
         if empty_flag == False:
-            ScheFlag = 0
-            message.reply("皆さんが参加できる日はこちらになります.")
+            message.send("皆さんが参加できる日はこちらになります.")
             hatsugen = "期間："+str(boshu_start.date())+" ~ "+str(boshu_end.date())+" "+str(boshu_start.hour)+":00 - "+str(boshu_end.hour)+":00"
             message.send(hatsugen)
             everyone_free_set = everyone_free_set - everyone_busy_set
             #暇な日セットをソートしてからリスト型に保存
             free_list = sorted(everyone_free_set)
             empty_flag = True
+            ScheFlag = 0
 
             i=0
             while i+1 < len(free_list):
@@ -126,13 +125,15 @@ def scheduleend_func(message):
 
                 hatsugen = str(free_list[i].month) + '/' + str(free_list[i].day) + youbi + " " + str(free_list[i].hour) + ":00 - "
 
+                osusume = 1
                 free_list[i] = free_list[i] + datetime.timedelta(hours=1)
                 while i+1 < len(free_list) and free_list[i].hour == free_list[i+1].hour:
                     i += 1
+                    osusume += 1
                     free_list[i] = free_list[i] + datetime.timedelta(hours=1)
-                hatsugen = hatsugen + str(free_list[i].hour) + ":00"
-
+                hatsugen = hatsugen + str(free_list[i].hour) + ":00  ("+str(osusume)+"時間)"
                 message.send(hatsugen)
+
                 i += 1
             message.send("頑張ってくださいね！")
             
@@ -142,7 +143,7 @@ def scheduleend_func(message):
             ScheFlag = 0
     #startしてないのにend
     else:
-        message.reply("Oh, I didn't expect that.")
+        message.send("already ended")
 
 @respond_to(r'^flag$')
 def flag_func(message):
@@ -160,18 +161,22 @@ def help_func(message):
         message.reply('大変！！今すぐ救急車を呼びます！！')
         help_count = 0
 
-@respond_to(r'^set\s[0-9]{10}-[0-9]{10}$')
+@respond_to(r'^set')
 def set_func(message):
     global boshu_start
     global boshu_end
     text = message.body['text']
-    matchObj = re.findall('[0-9]{10}', text)
-    boshu_start = datetime.datetime.strptime(matchObj[0], "%Y%m%d%H")
-    boshu_end = datetime.datetime.strptime(matchObj[1], "%Y%m%d%H")
-    message.reply("募集期間を変えました！")
-    hatsugen = "期間："+str(boshu_start.date())+" ~ "+str(boshu_end.date())+" "+str(boshu_start.hour)+":00 - "+str(boshu_end.hour)+":00"
-    message.send(hatsugen)
-    schedule_init()
+    matchObj_error = re.search(r'^set\s[0-9]{10}-[0-9]{10}$', text)
+    if matchObj_error == None:
+        message.send('募集期間を変えるには\nset 2018070108-2018073122\n(年-月-日-時)のような形でお願いします')
+    else:
+        matchObj = re.findall('[0-9]{10}', text)
+        boshu_start = datetime.datetime.strptime(matchObj[0], "%Y%m%d%H")
+        boshu_end = datetime.datetime.strptime(matchObj[1], "%Y%m%d%H")
+        everyone_free_init()
+        message.send("募集期間を変えました！")
+        hatsugen = "期間："+str(boshu_start.date())+" ~ "+str(boshu_end.date())+" "+str(boshu_start.hour)+":00 - "+str(boshu_end.hour)+":00"
+        message.send(hatsugen)
 
 '''
 @respond_to(r'^set\shttps://calendar\.google\.com/calendar/ical/.+basic\.ics')
@@ -208,6 +213,10 @@ def sake_func(message):
     message.react('yotsuya')
     message.react('kyoko')
 
+@respond_to('殺す' or '死ね')
+def damedayo_funk(message):
+    message.send('三鷹「人に頭が下げられない奴ってのは、一生 半人前だよ」')
+
 @default_reply()
 def default_func(message):
     global ScheFlag
@@ -219,7 +228,7 @@ def default_func(message):
        
         #message.send(text)
         matchObj_url = re.search(r'^.*https://calendar\.google\.com/calendar/ical/.+basic\.ics.*', text)
-        matchObj_id = re.match(r'^.*\$.+', text)
+        matchObj_id = re.match(r'^\$.+', text)
         #str_mo = str(matchObj_url)
         #message.send(str_mo)
         #str_mo = str(matchObj_id)
@@ -235,7 +244,7 @@ def default_func(message):
                 empty_flag = False
                 matchObj_url = ''
             except:
-                message.reply('urlを開けませんでした...')
+                message.send('urlを開けませんでした...')
         elif matchObj_id != None:
             #ファイルをオープン
             file = open("DataBase.txt")
@@ -260,23 +269,24 @@ def default_func(message):
                         #みんなの忙しいリストに自分の忙しいリストを追加
                         #全員の忙しい日セット == 個人の忙しい日セットの和集合
                         everyone_busy_set = everyone_busy_set | kyokosan.busy_set
-                        message.reply("登録されたIDから予定をインポートしました")
+                        message.send("登録されたIDから予定をインポートしました")
                         empty_flag = False
                     except:
-                        message.reply('IDを開けませんでした...')
+                        message.send('IDを開けませんでした...')
                     break
             if mitsukarimashita == False:
-                message.reply('電話帳にお名前が見つかりません...')
+                message.send('電話帳にお名前が見つかりません...')
 
             mitsukarimashita = False
 
             #検索ができなかった場合
         else:
-            message.reply("IDまたはGoogleカレンダーのURLを指定してください...")
+            message.send("IDまたはGoogleカレンダーのURLを指定してください...")
         text = ''
 
     else:
-        message.reply('お困りの際はいつでも私宛てに「help」と仰ってくださいね！')
+        message.send('四谷「そういう大事なことは口に出して言わない方がいいですよ」')
+        #message.send('お困りの際はいつでも私宛てに「help」と仰ってくださいね！')
         #message.send("こっこっ，この，む...無職の甲斐性なしの貧乏人っっっ！")
 
 
