@@ -155,7 +155,7 @@ def help_func(message):
     global help_count
 
     if help_count < 2:
-        message.send('〜使い方〜\nstart\nでスケジュール調整を開始します\n$アカウント名 または GoogleカレンダーのURLを入力することで参加者に追加できます (例)$kyoko\nset 2018070108-2018073122\nのように入力することで，スケジュール範囲を 2018/7/1 ~ 2018/7/31 の 8:00 - 22:00 に設定します(デフォルトの範囲設定)\nend\nでスケジュール調整を終了し，全員が参加できる日を表示します')
+        message.send('〜使い方〜\nstart\nでスケジュール調整を開始します\n$アカウント名 または GoogleカレンダーのURLを入力することで参加者に追加できます (例)$kyoko\nset 2018070108-2018073122\nのように入力することで，スケジュール範囲を 2018/7/1 ~ 2018/7/31 の 8:00 - 22:00 に設定します(デフォルトの範囲設定)\nreg $(ユーザー名) [Googleカレンダーの非公開URL]\n：一刻館の電話帳にお名前とURLを加えます\nend\nでスケジュール調整を終了し，全員が参加できる日を表示します')
         help_count += 1
     else:
         message.reply('大変！！今すぐ救急車を呼びます！！')
@@ -298,7 +298,7 @@ def default_func(message):
 
         #IDでもurlでもなかった場合
         else:
-            message.send("IDまたはGoogleカレンダーのURLを指定してください...")
+            message.send("IDまたはGoogleカレンダーのURLを指定してください...\nendで予定を出力します")
         text = ''
 
     else:
