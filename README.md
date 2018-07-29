@@ -5,11 +5,11 @@
 * slackbotとして[enPiT2018](https://enpit2018.slack.com/messages/DBXTX88F4/)上で動作しています
 * [Googleカレンダー](https://calendar.google.com/)のエクスポートファイル(ics形式)をサポートします  
 ## メンバー
-    田中
-    須藤
-    金沢
-    林
-    [遊佐](https://github.com/yungoyungo)
+* tanaka
+* suto
+* kanazawa
+* hayashi
+* [yusa](https://github.com/yungoyungo)
 ## 何が管理人さんなのか
 
 ![ささっ](http://www.ne.jp/asahi/rumic/k-asuka/c_images/Maison3.jpg "管理人さんは管理人さんです")
