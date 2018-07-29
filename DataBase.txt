@@ -2,3 +2,7 @@ $kyoko https://calendar.google.com/calendar/ical/eru9j8labfq0245qeqk39ukr2s%40gr
 $godai https://calendar.google.com/calendar/ical/aliko62mpof47ljh98jn32crb0%40group.calendar.google.com/private-3f1a02b50c5e5bf0dc9d9a88815e0735/basic.ics
 $yotsuya https://calendar.google.com/calendar/ical/otc0r13bd7emrftfaivi7qqm4k%40group.calendar.google.com/private-0be666324e115e61b8445cb5e70fa850/basic.ics
 $akemi https://calendar.google.com/calendar/ical/dr803jt9ihjndci56its82ea7s%40group.calendar.google.com/private-91dd1b227c4725af34b3b47f80a941ae/basic.ics
+$hayashi https://calendar.google.com/calendar/ical/sadaharu8818%40gmail.com/private-d345dc2347fc0449dd27160351f4c4e3/basic.ics
+$tonali https://calendar.google.com/calendar/ical/7lks99kffdgeuo2tot52pece2g%40group.calendar.google.com/private-0ec7241472c99d178dc7aed764573a88/basic.ics
+$takashi https://calendar.google.com/calendar/ical/dr0rrgdtbk44rku7db567k3c4g%40group.calendar.google.com/private-be31a42ab4cdf75be9f646d1276a23f0/basic.ics
+$masaru https://calendar.google.com/calendar/ical/fljk88j465b79qbe6d6g230e54%40group.calendar.google.com/private-643cd07e8042cd77fc71080028f1f54d/basic.ics
