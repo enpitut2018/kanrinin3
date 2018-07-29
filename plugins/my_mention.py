@@ -25,7 +25,7 @@ URL = ''
 help_count = 0
 empty_flag = True
 
-file_path = "data/schedule.ics"
+file_path = "/tmp/schedule.ics"
 database_path = "Database.txt"
 
 boshu_start_str = '2018070108'
