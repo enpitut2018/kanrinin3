@@ -183,9 +183,7 @@ def set_func(message):
 def reg_func(message):
     text = message.body['text']
     matchObj_id = re.search(r'\$.+\s', text)
-    message.send(str(matchObj_id))
     matchObj_url = re.search(r'https://calendar\.google\.com/calendar/ical/.+/private-.+/basic\.ics', text)
-    message.send(str(matchObj_url))
     #idとurlが揃っていれば
     if matchObj_id != None and matchObj_url != None:
         try:
