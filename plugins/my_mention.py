@@ -21,7 +21,6 @@ import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
 ScheFlag = 0
-URL = ''
 help_count = 0
 empty_flag = True
 
@@ -41,14 +40,15 @@ everyone_free_set = set()
 def everyone_free_init():
     global everyone_free_set
 
-    #空のfree_setに範囲内の時間全て入れる
+    #空のfree_setに範囲内の時間全て入れる(全体集合的なもの)
     everyone_free_set = set()
     calc_date = boshu_start
     while calc_date <= boshu_end:
         #22時になったら翌8時にスキップみたいなことしてる
-        if calc_date.hour >= boshu_end.hour:
+        if calc_date.hour == boshu_end.hour:
             calc_date = calc_date.replace(hour=boshu_start.hour)
-            calc_date = calc_date + datetime.timedelta(days=1)
+            if boshu_start.hour < boshu_end.hour:
+                calc_date = calc_date + datetime.timedelta(days=1)
         everyone_free_set.add(calc_date)
         calc_date = calc_date + datetime.timedelta(hours=1)
 
@@ -178,11 +178,32 @@ def set_func(message):
         hatsugen = "期間："+str(boshu_start.date())+" ~ "+str(boshu_end.date())+" "+str(boshu_start.hour)+":00 - "+str(boshu_end.hour)+":00"
         message.send(hatsugen)
 
-'''
-@respond_to(r'^set\shttps://calendar\.google\.com/calendar/ical/.+basic\.ics')
-def set_url_func(message):
-    message.reply("URLをセットすると言ったな，あれは嘘だ")
-'''
+#@respond_to(r'^reg\s\$.+\shttps://calendar\.google\.com/calendar/ical/.+/private-.+/basic\.ics')
+@respond_to(r'^reg')
+def reg_func(message):
+    text = message.body['text']
+    matchObj_id = re.search(r'\$.+\s', text)
+    message.send(str(matchObj_id))
+    matchObj_url = re.search(r'https://calendar\.google\.com/calendar/ical/.+/private-.+/basic\.ics', text)
+    message.send(str(matchObj_url))
+    #idとurlが揃っていれば
+    if matchObj_id != None and matchObj_url != None:
+        try:
+            f = open(database_path,'a')
+        except:
+            message.send('データベースを開けませんでした...')
+        try:
+            f.write(matchObj_id.group())
+            f.write(matchObj_url.group()+'\n')
+            hatsugen = matchObj_id.group() + "をデータベースに登録しました"
+            message.send(hatsugen)
+            f.close()
+        except:
+            message.send('DBの登録に失敗しました...')
+    else:
+        message.send('データベースに登録するには\nreg $(ユーザー名) [Googleカレンダーの非公開URL]\nと入力してください')
+
+#todo データベースから削除
 
 @listen_to("だるい")
 def listen_func(message):
@@ -229,10 +250,7 @@ def default_func(message):
         #message.send(text)
         matchObj_url = re.search(r'^.*https://calendar\.google\.com/calendar/ical/.+basic\.ics.*', text)
         matchObj_id = re.match(r'^\$.+', text)
-        #str_mo = str(matchObj_url)
-        #message.send(str_mo)
-        #str_mo = str(matchObj_id)
-        #message.send(str_mo)
+        #渡されたのがurlだった場合
         if matchObj_url != None:
             kyokosan = Ikkokukan()
             kyokosan.set_url(matchObj_url.group())
@@ -245,9 +263,10 @@ def default_func(message):
                 matchObj_url = ''
             except:
                 message.send('urlを開けませんでした...')
+        #渡されたのがIDだった場合
         elif matchObj_id != None:
             #ファイルをオープン
-            file = open("DataBase.txt")
+            file = open(database_path)
             lines = file.readlines()
             file.close()
 
@@ -279,7 +298,7 @@ def default_func(message):
 
             mitsukarimashita = False
 
-            #検索ができなかった場合
+        #IDでもurlでもなかった場合
         else:
             message.send("IDまたはGoogleカレンダーのURLを指定してください...")
         text = ''
