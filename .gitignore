@@ -1,0 +1,4 @@
+.vscode/settings.json
+__pycache__/slackbot_settings.cpython-36.pyc
+plugins/__pycache__/__init__.cpython-36.pyc
+plugins/__pycache__/my_mention.cpython-36.pyc
