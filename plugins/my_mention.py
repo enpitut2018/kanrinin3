@@ -25,7 +25,7 @@ help_count = 0
 empty_flag = True
 
 file_path = "/tmp/schedule.ics"
-database_path = "Database.txt"
+database_path = "Database1.txt"
 
 boshu_start_str = '2018072908'
 boshu_end_str = '2018080322'
