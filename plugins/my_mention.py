@@ -28,8 +28,8 @@ empty_flag = True
 file_path = "/tmp/schedule.ics"
 database_path = "Database.txt"
 
-boshu_start_str = '2018070108'
-boshu_end_str = '2018070722'
+boshu_start_str = '2018072908'
+boshu_end_str = '2018080322'
 #現状start時間<end時間の場合しか対応してないです,終電で帰ってください
 boshu_start = datetime.datetime.strptime(boshu_start_str, "%Y%m%d%H")
 boshu_end = datetime.datetime.strptime(boshu_end_str, "%Y%m%d%H")
