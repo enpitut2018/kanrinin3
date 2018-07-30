@@ -260,7 +260,7 @@ def nomikai_func(message):
     message.react('yotsuya')
     message.react('kyoko')
 
-@respond_to('殺す' or '死ね')
+@respond_to('殺す')
 def damedayo_funk(message):
     message.send('人に頭が下げられない奴ってのは、一生 半人前だよ')
 
@@ -270,8 +270,8 @@ def default_func(message):
     global URL
     global everyone_busy_set
     global empty_flag
+    text = message.body['text']     # メッセージを取り出す
     if ScheFlag == 1:
-        text = message.body['text']     # メッセージを取り出す
        
         #message.send(text)
         matchObj_url = re.search(r'^.*https://calendar\.google\.com/calendar/ical/.+basic\.ics.*', text)
@@ -329,9 +329,12 @@ def default_func(message):
         text = ''
 
     else:
-        message.send('そういう大事なことは口に出して言わない方がいいですよ')
-        #message.send('お困りの際はいつでも私宛てに「help」と仰ってくださいね！')
-        #message.send("こっこっ，この，む...無職の甲斐性なしの貧乏人っっっ！")
+        if text == '':
+            message.send('なんでしょうか？')
+        else: 
+            message.send('そういう大事なことは口に出して言わない方がいいですよ')
+            #message.send('お困りの際はいつでも私宛てに「help」と仰ってくださいね！')
+            #message.send("こっこっ，この，む...無職の甲斐性なしの貧乏人っっっ！")
 
 
 class Ikkokukan():
