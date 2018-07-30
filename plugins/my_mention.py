@@ -260,6 +260,12 @@ def nomikai_func(message):
     message.react('yotsuya')
     message.react('kyoko')
 
+@listen_to('酔')
+def nomikai_func(message):
+    message.react('godai')
+    message.react('yotsuya')
+    message.react('kyoko')
+
 @respond_to('殺す')
 def damedayo_funk(message):
     message.send('人に頭が下げられない奴ってのは、一生 半人前だよ')
