@@ -156,7 +156,7 @@ def showdb_funk(message):
     global database_path
     with open(database_path, 'r') as f:
         for line in f.readlines():
-            matchObj = re.search(r'\$.+\s')
+            matchObj = re.search(r'\$.+\s', line)
                 message.send(str(matchObj.group()))
 
 @respond_to(r'^help$')
