@@ -208,11 +208,16 @@ def reg_func(message):
 #todo データベースから削除
 
 @listen_to("だるい")
-def listen_func(message):
+def gohan_func(message):
     message.reply('大丈夫ですか？ご飯作りましょうか？')
 
+
+@listen_to("管理人さん")
+def delete_func(message):
+    message.reply('そのワードは権利者の申し立てが恐いので削除しました')
+
 @respond_to("ありがとう")
-def listen_func(message):
+def arigatou_func(message):
     message.send('私は心のないロボット')
 
 @respond_to('cool') #ハッシュがついていたら、
@@ -230,8 +235,20 @@ def godai_func(message):
     message.reply('五代さん，はい')
     message.react('godai')
 
-@listen_to('酒' or '酔' or '祭' or '飲み会')
+@listen_to('酒')
 def sake_func(message):
+    message.react('godai')
+    message.react('yotsuya')
+    message.react('kyoko')
+
+@listen_to('祭')
+def matsuri_func(message):
+    message.react('godai')
+    message.react('yotsuya')
+    message.react('kyoko')
+
+@listen_to('飲み会')
+def nomikai_func(message):
     message.react('godai')
     message.react('yotsuya')
     message.react('kyoko')
