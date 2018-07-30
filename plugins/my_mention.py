@@ -29,7 +29,7 @@ database_path = "DataBase.txt"
 
 boshu_start_str = '2018072908'
 boshu_end_str = '2018080322'
-#現状start時間<end時間の場合しか対応してないです,終電で帰ってください
+#現状start時間>end時間の場合挙動がおかしいので終電で帰ってください
 boshu_start = datetime.datetime.strptime(boshu_start_str, "%Y%m%d%H")
 boshu_end = datetime.datetime.strptime(boshu_end_str, "%Y%m%d%H")
 
@@ -156,7 +156,8 @@ def showdb_funk(message):
     global database_path
     with open(database_path, 'r') as f:
         for line in f.readlines():
-            message.send(line)
+            matchObj = re.search(r'\$.+\s')
+                message.send(str(matchObj.group()))
 
 @respond_to(r'^help$')
 def help_func(message):
@@ -186,7 +187,6 @@ def set_func(message):
         hatsugen = "期間："+str(boshu_start.date())+" ~ "+str(boshu_end.date())+" "+str(boshu_start.hour)+":00 - "+str(boshu_end.hour)+":00"
         message.send(hatsugen)
 
-#@respond_to(r'^reg\s\$.+\shttps://calendar\.google\.com/calendar/ical/.+/private-.+/basic\.ics')
 @respond_to(r'^reg')
 def reg_func(message):
     text = message.body['text']
