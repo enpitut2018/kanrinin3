@@ -188,7 +188,7 @@ def set_func(message):
             hatsugen = "期間："+str(boshu_start.date())+" ~ "+str(boshu_end.date())+" "+str(boshu_start.hour)+":00 - "+str(boshu_end.hour)+":00"
             message.send(hatsugen)
         except:
-            message.send("setに失敗しました")
+            message.send("setに失敗しました\nフォーマットに誤りがある可能性があります")
 
 @respond_to(r'^reg')
 def reg_func(message):
