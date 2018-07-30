@@ -183,12 +183,16 @@ def set_func(message):
             matchObj = re.findall('[0-9]{10}', text)
             boshu_start = datetime.datetime.strptime(matchObj[0], "%Y%m%d%H")
             boshu_end = datetime.datetime.strptime(matchObj[1], "%Y%m%d%H")
-            everyone_free_init()
-            message.send("募集期間を変えました！")
-            hatsugen = "期間："+str(boshu_start.date())+" ~ "+str(boshu_end.date())+" "+str(boshu_start.hour)+":00 - "+str(boshu_end.hour)+":00"
-            message.send(hatsugen)
+            if boshu_start.year < 1980 or boshu_end.year > 2050:
+                message.send("できなくはないですけど処理に時間がかかるので期間は1980年~2050年で願いします")
+            else:
+                everyone_free_init()
+                message.send("募集期間を変えました！")
+                hatsugen = "期間："+str(boshu_start.date())+" ~ "+str(boshu_end.date())+" "+str(boshu_start.hour)+":00 - "+str(boshu_end.hour)+":00"
+                message.send(hatsugen)
         except:
             message.send("setに失敗しました\nフォーマットに誤りがある可能性があります")
+    text = ''
 
 @respond_to(r'^reg')
 def reg_func(message):
