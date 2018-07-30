@@ -211,7 +211,7 @@ def reg_func(message):
 def listen_func(message):
     message.reply('大丈夫ですか？ご飯作りましょうか？')
 
-@listen_to("ありがとう")
+@respond_to("ありがとう")
 def listen_func(message):
     message.send('私は心のないロボット')
 
