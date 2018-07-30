@@ -27,8 +27,8 @@ empty_flag = True
 file_path = "/tmp/schedule.ics"
 database_path = "DataBase.txt"
 
-boshu_start_str = '2018072908'
-boshu_end_str = '2018080322'
+boshu_start_str = '2018073008'
+boshu_end_str = '2018080422'
 #現状start時間>end時間の場合挙動がおかしいので終電で帰ってください
 boshu_start = datetime.datetime.strptime(boshu_start_str, "%Y%m%d%H")
 boshu_end = datetime.datetime.strptime(boshu_end_str, "%Y%m%d%H")
@@ -179,13 +179,16 @@ def set_func(message):
     if matchObj_error == None:
         message.send('募集期間を変えるには\nset 2018070108-2018073122\n(年-月-日-時)のような形でお願いします')
     else:
-        matchObj = re.findall('[0-9]{10}', text)
-        boshu_start = datetime.datetime.strptime(matchObj[0], "%Y%m%d%H")
-        boshu_end = datetime.datetime.strptime(matchObj[1], "%Y%m%d%H")
-        everyone_free_init()
-        message.send("募集期間を変えました！")
-        hatsugen = "期間："+str(boshu_start.date())+" ~ "+str(boshu_end.date())+" "+str(boshu_start.hour)+":00 - "+str(boshu_end.hour)+":00"
-        message.send(hatsugen)
+        try:
+            matchObj = re.findall('[0-9]{10}', text)
+            boshu_start = datetime.datetime.strptime(matchObj[0], "%Y%m%d%H")
+            boshu_end = datetime.datetime.strptime(matchObj[1], "%Y%m%d%H")
+            everyone_free_init()
+            message.send("募集期間を変えました！")
+            hatsugen = "期間："+str(boshu_start.date())+" ~ "+str(boshu_end.date())+" "+str(boshu_start.hour)+":00 - "+str(boshu_end.hour)+":00"
+            message.send(hatsugen)
+        except:
+            message.send("setに失敗しました")
 
 @respond_to(r'^reg')
 def reg_func(message):
