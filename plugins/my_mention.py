@@ -156,7 +156,7 @@ def showdb_funk(message):
     global database_path
     with open(database_path, 'r') as f:
         for line in f.readlines():
-            matchObj = re.search(r'\$.+\s', line)
+            matchObj = re.search(r'\$.+\shttps', line)
             message.send(matchObj.group())
 
 @respond_to(r'^help$')
@@ -211,9 +211,9 @@ def reg_func(message):
 def listen_func(message):
     message.reply('大丈夫ですか？ご飯作りましょうか？')
 
-@listen_to("管理人")
+@listen_to("ありがとう")
 def listen_func(message):
-    message.send('一刻館の管理人をしています，音無響子と申します')
+    message.send('私は心のないロボット')
 
 @respond_to('cool') #ハッシュがついていたら、
 def cool_func(message):
@@ -230,7 +230,7 @@ def godai_func(message):
     message.reply('五代さん，はい')
     message.react('godai')
 
-@listen_to('酒' or '酔' or '祭')
+@listen_to('酒' or '酔' or '祭' or '飲み会')
 def sake_func(message):
     message.react('godai')
     message.react('yotsuya')
@@ -238,7 +238,7 @@ def sake_func(message):
 
 @respond_to('殺す' or '死ね')
 def damedayo_funk(message):
-    message.send('三鷹「人に頭が下げられない奴ってのは、一生 半人前だよ」')
+    message.send('人に頭が下げられない奴ってのは、一生 半人前だよ')
 
 @default_reply()
 def default_func(message):
@@ -305,7 +305,7 @@ def default_func(message):
         text = ''
 
     else:
-        message.send('四谷「そういう大事なことは口に出して言わない方がいいですよ」')
+        message.send('そういう大事なことは口に出して言わない方がいいですよ')
         #message.send('お困りの際はいつでも私宛てに「help」と仰ってくださいね！')
         #message.send("こっこっ，この，む...無職の甲斐性なしの貧乏人っっっ！")
 
