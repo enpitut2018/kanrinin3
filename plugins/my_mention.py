@@ -262,9 +262,7 @@ def nomikai_func(message):
 
 @listen_to('酔')
 def nomikai_func(message):
-    message.react('godai')
-    message.react('yotsuya')
-    message.react('kyoko')
+    message.send('お酒は程々にしてくださいね')
 
 @respond_to('殺す')
 def damedayo_funk(message):
