@@ -27,11 +27,15 @@ empty_flag = True
 file_path = "/tmp/schedule.ics"
 database_path = "DataBase.txt"
 
-boshu_start_str = '2018073008'
-boshu_end_str = '2018080422'
+boshu_start_str = '20180730'
+boshu_end_str = '20180804'
+ohayo = '08'
+oyasumi = '22'
 #現状start時間>end時間の場合挙動がおかしいので終電で帰ってください
-boshu_start = datetime.datetime.strptime(boshu_start_str, "%Y%m%d%H")
-boshu_end = datetime.datetime.strptime(boshu_end_str, "%Y%m%d%H")
+boshu_start = datetime.datetime.strptime(boshu_start_str, "%Y%m%d")
+boshu_end = datetime.datetime.strptime(boshu_end_str, "%Y%m%d")
+boshu_start = boshu_start.replace(hour=int(ohayo))
+boshu_end = boshu_end.replace(hour=int(oyasumi))
 
 everyone_busy_set = set()
 everyone_free_set = set()
@@ -170,19 +174,25 @@ def help_func(message):
         message.reply('大変！！今すぐ救急車を呼びます！！')
         help_count = 0
 
-@respond_to(r'^set')
+#or使えないんですね...
+#@respond_to(r'^set\s' or r'^set$')
+@respond_to(r'^set\s')
 def set_func(message):
     global boshu_start
     global boshu_end
+    global ohayo
+    global oyasumi
     text = message.body['text']
-    matchObj_error = re.search(r'^set\s[0-9]{10}-[0-9]{10}$', text)
+    matchObj_error = re.search(r'^set\s[0-9]{8}-[0-9]{8}$', text)
     if matchObj_error == None:
-        message.send('募集期間を変えるには\nset 2018070108-2018073122\n(年-月-日-時)のような形でお願いします')
+        message.send('募集期間を変えるには\nset 20180701-20180731\n(年-月-日)のような形でお願いします')
     else:
         try:
-            matchObj = re.findall('[0-9]{10}', text)
-            boshu_start = datetime.datetime.strptime(matchObj[0], "%Y%m%d%H")
-            boshu_end = datetime.datetime.strptime(matchObj[1], "%Y%m%d%H")
+            matchObj = re.findall('[0-9]{8}', text)
+            boshu_start = datetime.datetime.strptime(matchObj[0], "%Y%m%d")
+            boshu_end = datetime.datetime.strptime(matchObj[1], "%Y%m%d")
+            boshu_start = boshu_start.replace(hour=int(ohayo))
+            boshu_end = boshu_end.replace(hour=int(oyasumi))
             if boshu_start.year < 1980 or boshu_end.year > 2050:
                 message.send("できなくはないですけど処理に時間がかかるので期間は1980年~2050年で願いします")
             else:
@@ -191,7 +201,35 @@ def set_func(message):
                 hatsugen = "期間："+str(boshu_start.date())+" ~ "+str(boshu_end.date())+" "+str(boshu_start.hour)+":00 - "+str(boshu_end.hour)+":00"
                 message.send(hatsugen)
         except:
-            message.send("setに失敗しました\nフォーマットに誤りがある可能性があります")
+            message.send("setに失敗しました\n形式に誤りがある可能性があります")
+    text = ''
+
+@respond_to(r'^settime')
+def set_func(message):
+    global boshu_start
+    global boshu_end
+    global ohayo
+    global oyasumi
+    text = message.body['text']
+    matchObj_error = re.search(r'^settime\s[0-9]{2}-[0-9]{2}$', text)
+    if matchObj_error == None:
+        message.send('募集時間を変えるには\nsettime 08-22\n(朝8時から夜22時まで)のような形でお願いします')
+    else:
+        try:
+            matchObj = re.findall('[0-9]{2}', text)
+            ohayo = matchObj[0]
+            oyasumi = matchObj[1]
+            boshu_start = boshu_start.replace(hour=int(ohayo))
+            boshu_end = boshu_end.replace(hour=int(oyasumi))
+            if boshu_start.year < 1980 or boshu_end.year > 2050:
+                message.send("できなくはないですけど処理に時間がかかるので期間は1980年~2050年で願いします")
+            else:
+                everyone_free_init()
+                message.send("募集時間を変えました！")
+                hatsugen = "期間："+str(boshu_start.date())+" ~ "+str(boshu_end.date())+" "+str(boshu_start.hour)+":00 - "+str(boshu_end.hour)+":00"
+                message.send(hatsugen)
+        except:
+            message.send("setに失敗しました\n形式に誤りがある可能性があります")
     text = ''
 
 @respond_to(r'^reg')
